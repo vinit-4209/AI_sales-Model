@@ -75,7 +75,7 @@ AI_sales Model/
 
 ```sh
 git clone https://github.com/vinit-4209/AI_sales-Model.git
-cd AI_sales\ Model
+cd AI_sales Model
 ```
 
 ### 2. Create and Activate a Virtual Environment
