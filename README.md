@@ -35,55 +35,125 @@ OpenAI’s original Whisper model is **accurate but computationally heavy**. Fas
 4. **Hardware Utilization** – Optimized for **CPU/GPU acceleration** without requiring expensive hardware.  
 
 ---
+# AI Sales Model: Real-Time Speech Transcription, Sentiment Analysis, and Google Sheets Logging
 
-## 🆚 Other ASR Options
-If your requirements include **speaker diarization** or **enterprise-grade SLA**, you may also consider:
-
-### **Google Cloud Speech-to-Text**
-- Strong **real-time streaming transcription**  
-- Wide **multi-language support**  
-
-### **Microsoft Azure Speech Services**
-- Real-time **speech-to-text** with **speaker diarization** (who spoke when)  
-- Easy **Azure ecosystem integration**  
+This project records audio in real-time, transcribes speech using a Whisper model, analyzes sentiment using the Groq API, and logs the results to a Google Sheet. The workflow is modular, with separate files for audio handling, transcription, sentiment analysis, and Google Sheets integration.
 
 ---
 
-## ✅ Advantages of Faster Whisper
-- **Real-time performance** with CTranslate2  
-- **Lower resource usage** → deploy on mid-range hardware  
-- **High accuracy** → retains Whisper’s multilingual and accent robustness  
-- **Streaming transcription support** → chunk-by-chunk audio processing  
-- **Cross-platform** → CPU, GPU, Apple M1/M2  
-- **Open-source and customizable** → integrate with your AI pipeline  
+## Features
+
+- **Real-time audio recording** using your microphone
+- **Automatic speech transcription** with [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+- **Sentiment analysis** via the Groq API (Llama-3.1-8b-instant)
+- **Automatic logging** of transcript, sentiment, and summary to Google Sheets
+- **Auto-stop** after configurable silence duration
 
 ---
 
-## ⚠ Limitations to Consider
-- **High resource needs for large models** (medium/large variants need strong GPUs or RAM)  
-- **Inference only** → no fine-tuning for domain-specific audio  
-- **Accuracy drop in very noisy environments or low-resource languages**  
-- **Model loading delay** for larger models  
-- **Setup overhead** → requires CTranslate2 and FFmpeg  
-- **Occasional mistranscription** of niche vocabulary or product names  
+## Project Structure
+
+```
+AI_sales Model/
+│
+├── audio_utils.py        # Audio recording and silence detection
+├── whisper_utils.py      # Whisper model loading and transcription
+├── sentiment_utils.py    # Sentiment analysis via Groq API
+├── sheet_utils.py        # Google Sheets integration
+├── main.py               # Main integration script
+├── requirements.txt      # Python dependencies
+├── credentials.json      # Google Service Account credentials (not included)
+├── .env                  # Environment variables (GROQ_API_KEY)
+└── README.md             # Project documentation
+```
 
 ---
 
-## 📝 When to Choose Fast Whisper
-- Choose **Fast Whisper** if you need **offline, open-source, cost-efficient real-time transcription**.  
-- Choose **Google Cloud Speech-to-Text** or **Azure Speech Services** if you need **speaker diarization**, **fully managed APIs**, or **enterprise SLAs**.  
+## Setup Instructions
+
+### 1. Clone the Repository
+
+```sh
+git clone <your-repo-url>
+cd AI_sales\ Model
+```
+
+### 2. Create and Activate a Virtual Environment
+
+```sh
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+### 3. Install Dependencies
+
+```sh
+pip install -r requirements.txt
+```
+
+### 4. Set Up Environment Variables
+
+Create a `.env` file in the project root with your Groq API key:
+
+```
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+### 5. Set Up Google Sheets Credentials
+
+- Create a Google Cloud project and enable the Google Sheets API.
+- Download your `credentials.json` and place it in the project root.
+- Share your target Google Sheet with the service account email.
 
 ---
 
-## 📄 License
-This project uses **open-source components**. Please check the respective libraries for their licenses:
-- [OpenAI Whisper](https://github.com/openai/whisper)  
-- [CTranslate2](https://github.com/OpenNMT/CTranslate2)  
-- [Faster-Whisper](https://github.com/guillaumekln/faster-whisper)  
+## Usage
+
+Run the main script:
+
+```sh
+python main.py
+```
+
+- Speak into your microphone.
+- The script will transcribe your speech, analyze sentiment, and log results to your Google Sheet.
+- The process will automatically stop after 15 seconds of silence (configurable in `main.py`).
 
 ---
 
+## Configuration
 
+You can adjust these parameters in `main.py`:
 
+- `SILENCE_THRESHOLD`: Sensitivity for silence detection
+- `SILENCE_SECONDS`: Duration of silence before auto-stop
+- `sample_rate`, `block_duration`, `chunk_duration`: Audio processing settings
 
- 
+---
+
+## Requirements
+
+- Python 3.8+
+- [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+- sounddevice
+- numpy
+- requests
+- python-dotenv
+- gspread
+- oauth2client
+
+All dependencies are listed in `requirements.txt`.
+
+---
+
+## License
+
+This project is for educational and demonstration purposes.
+
+---
+
+## Acknowledgements
+
+- [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+- [Groq API](https://console.groq.com/)
+- [Google Sheets API](https://developers.google.com/sheets/api)
