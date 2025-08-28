@@ -74,7 +74,7 @@ AI_sales Model/
 ### 1. Clone the Repository
 
 ```sh
-git clone <your-repo-url>
+git clone https://github.com/vinit-4209/AI_sales-Model.git
 cd AI_sales\ Model
 ```
 
