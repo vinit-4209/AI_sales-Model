@@ -9,14 +9,14 @@ from sheet_utils import get_sheet, append_to_sheet
 
 sample_rate = 16000
 block_duration = 0.5
-chunk_duration = 5
+#chunk_duration = 5
 channels = 1
 
 SILENCE_THRESHOLD = 0.02
 SILENCE_SECONDS = 15
 silence_blocks_required = int(SILENCE_SECONDS / block_duration)
 
-frames_per_chunk = int(sample_rate * chunk_duration)
+#frames_per_chunk = int(sample_rate * chunk_duration)
 frames_per_block = int(sample_rate * block_duration)
 
 audio_queue = queue.Queue()
@@ -38,23 +38,24 @@ def transcriber():
             else:
                 silence_blocks = 0
             if silence_blocks >= silence_blocks_required:
-                print("Detected silence. Stopping...")
+                print("Detected silence. Transcribing entire audio...")
                 stop_event.set()
-                break
-            total_frames = sum(len(b) for b in audio_buffer)
-            if total_frames >= frames_per_chunk:
-                audio_data = np.concatenate(audio_buffer)[:frames_per_chunk]
+               
+                if audio_buffer:
+                    audio_data = np.concatenate(audio_buffer).flatten().astype(np.float32)
+                    if np.any(audio_data):  
+                        texts = transcribe_audio(model, audio_data)
+                        for text in texts:
+                            if text.strip(): 
+                                print(f"Transcript: {text}")
+                                sentiment_result = analyze_sentiment(text)
+                                if sentiment_result:
+                                    sentiment = sentiment_result["sentiment_analysis"]["sentiment"]
+                                    summary = sentiment_result["sentiment_analysis"]["summary"]
+                                    print(f"Sentiment: {sentiment}")
+                                    append_to_sheet(sheet, text, sentiment, summary)
                 audio_buffer = []
-                audio_data = audio_data.flatten().astype(np.float32)
-                texts = transcribe_audio(model, audio_data)
-                for text in texts:
-                    print(f"Transcript: {text}")
-                    sentiment_result = analyze_sentiment(text)
-                    if sentiment_result:
-                        sentiment = sentiment_result["sentiment_analysis"]["sentiment"]
-                        summary = sentiment_result["sentiment_analysis"]["summary"]
-                        print(f"Sentiment: {sentiment}")
-                        append_to_sheet(sheet, text, sentiment, summary)
+                break
     except KeyboardInterrupt:
         stop_event.set()
         print("Stopped manually")

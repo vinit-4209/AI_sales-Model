@@ -6,35 +6,40 @@ It delivers **real-time transcription** performance while retaining Whisper’s 
 ---
 
 ## 🚀 What is Fast Whisper?
-- Converts Whisper models into **CTranslate2** or **Faster-Whisper** format for optimized CPU/GPU inference.  
-- Provides **streaming transcription** for **low-latency applications**.  
-- Runs efficiently on **CPU, GPU, and Apple Silicon (M1/M2)** hardware.  
+
+- Converts Whisper models into **CTranslate2** or **Faster-Whisper** format for optimized CPU/GPU inference.
+- Provides **streaming transcription** for **low-latency applications**.
+- Runs efficiently on **CPU, GPU, and Apple Silicon (M1/M2)** hardware.
 - Fully **open-source** and **customizable**.
 
 ---
 
 ## 💡 Why Use Fast Whisper?
-OpenAI’s original Whisper model is **accurate but computationally heavy**. Fast Whisper solves this by:  
 
-- **Reducing latency** → ideal for live captions and call transcription.  
-- **Lowering resource usage** → runs even on laptops, mobile devices, or Raspberry Pi.  
+OpenAI’s original Whisper model is **accurate but computationally heavy**. Fast Whisper solves this by:
+
+- **Reducing latency** → ideal for live captions and call transcription.
+- **Lowering resource usage** → runs even on laptops, mobile devices, or Raspberry Pi.
 - **Cost efficiency** → less hardware required compared to standard Whisper.
 
 **Perfect for:**
-- Real-time meeting transcription  
-- Sales call analytics  
-- Live captions for webinars or broadcasts  
-- Edge deployments where power consumption is critical  
+
+- Real-time meeting transcription
+- Sales call analytics
+- Live captions for webinars or broadcasts
+- Edge deployments where power consumption is critical
 
 ---
 
 ## ⚙ How Does It Work?
-1. **Model Optimization** – Converts Whisper models into an efficient inference engine using CTranslate2.  
-2. **Quantization** – Uses **int8/int16 precision** instead of FP32 to reduce memory usage and speed up processing.  
-3. **Streaming Support** – Processes audio in **small chunks** for low-latency transcription.  
-4. **Hardware Utilization** – Optimized for **CPU/GPU acceleration** without requiring expensive hardware.  
+
+1. **Model Optimization** – Converts Whisper models into an efficient inference engine using CTranslate2.
+2. **Quantization** – Uses **int8/int16 precision** instead of FP32 to reduce memory usage and speed up processing.
+3. **Streaming Support** – Processes audio in **small chunks** for low-latency transcription.
+4. **Hardware Utilization** – Optimized for **CPU/GPU acceleration** without requiring expensive hardware.
 
 ---
+
 # AI Sales Model: Real-Time Speech Transcription, Sentiment Analysis, and Google Sheets Logging
 
 This project records audio in real-time, transcribes speech using a Whisper model, analyzes sentiment using the Groq API, and logs the results to a Google Sheet. The workflow is modular, with separate files for audio handling, transcription, sentiment analysis, and Google Sheets integration.

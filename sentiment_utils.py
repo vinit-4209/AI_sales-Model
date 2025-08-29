@@ -50,7 +50,7 @@ def analyze_sentiment(text):
                                     "summary": parsed.get("summary", "No summary provided")
                                 }
                             }
-                # Fallback
+                
                 if any(word in raw_output.lower() for word in ["positive", "good", "great", "excellent", "happy"]):
                     return {"sentiment_analysis": {"sentiment": "positive", "summary": "Sentiment analysis completed"}}
                 elif any(word in raw_output.lower() for word in ["negative", "bad", "terrible", "awful", "sad"]):
