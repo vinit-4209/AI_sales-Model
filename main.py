@@ -45,15 +45,15 @@ def transcriber():
                     audio_data = np.concatenate(audio_buffer).flatten().astype(np.float32)
                     if np.any(audio_data):  
                         texts = transcribe_audio(model, audio_data)
-                        for text in texts:
-                            if text.strip(): 
-                                print(f"Transcript: {text}")
-                                sentiment_result = analyze_sentiment(text)
-                                if sentiment_result:
-                                    sentiment = sentiment_result["sentiment_analysis"]["sentiment"]
-                                    summary = sentiment_result["sentiment_analysis"]["summary"]
-                                    print(f"Sentiment: {sentiment}")
-                                    append_to_sheet(sheet, text, sentiment, summary)
+                        full_transcript = " ".join([text.strip() for text in texts if text.strip()])
+                        if full_transcript:
+                            print(f"Transcript: {full_transcript}")
+                            sentiment_result = analyze_sentiment(full_transcript)
+                            if sentiment_result:
+                                sentiment = sentiment_result["sentiment_analysis"]["sentiment"]
+                                summary = sentiment_result["sentiment_analysis"]["summary"]
+                                print(f"Sentiment: {sentiment}")
+                                append_to_sheet(sheet, full_transcript, sentiment, summary)
                 audio_buffer = []
                 break
     except KeyboardInterrupt:
