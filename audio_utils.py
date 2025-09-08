@@ -1,9 +1,40 @@
+#audio_utils.py
 #handles audio recording, silence detection, and related utilities.
 
 import sounddevice as sd
 import numpy as np
 import queue
 import threading
+
+
+import numpy as np
+
+# ---------------- Dynamic Silence Detection ----------------
+class SilenceDetector:
+    def __init__(self, block_duration=0.05, target_silence_sec=1.2, buffer_blocks=20, multiplier=1.5):
+        """
+        block_duration   : duration of each audio block in seconds
+        target_silence_sec: approximate silence period to detect end of utterance
+        buffer_blocks    : how many recent blocks to compute RMS for dynamic threshold
+        multiplier       : multiplies the RMS to set dynamic threshold
+        """
+        self.block_duration = block_duration
+        self.silence_blocks_required = int(target_silence_sec / block_duration)
+        self.buffer_blocks = buffer_blocks
+        self.multiplier = multiplier
+        self.recent_rms = []
+
+    def is_silent(self, block):
+        rms = np.sqrt(np.mean(block**2))
+        self.recent_rms.append(rms)
+        if len(self.recent_rms) > self.buffer_blocks:
+            self.recent_rms.pop(0)
+
+        # Dynamic threshold: mean RMS of recent blocks * multiplier
+        dynamic_threshold = max(0.01, np.mean(self.recent_rms) * self.multiplier)
+        return rms < dynamic_threshold
+
+
 
 def is_silent(block, threshold):
     return np.sqrt(np.mean(block**2)) < threshold
@@ -26,6 +57,7 @@ def start_recorder(audio_queue, sample_rate, channels, frames_per_block, stop_ev
             print("Listening... Speak now (Ctrl+C to stop)")
             while not stop_event.is_set():
                 sd.sleep(100)
-    thread = threading.Thread(target=recorder)
+        print("Recorder stopped.")   # <-- add this for confirmation
+    thread = threading.Thread(target=recorder, daemon=True)
     thread.start()
     return thread

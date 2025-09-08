@@ -1,65 +1,122 @@
+#main2.py 
+
+import os
 import queue
 import threading
 import numpy as np
+from datetime import datetime
 
-from audio_utils import start_recorder, is_silent
+from sheet_utils import append_to_csv, append_to_sheet, get_sheet
+from audio_utils import start_recorder, SilenceDetector
 from whisper_utils import load_whisper_model, transcribe_audio
-from sentiment_utils import analyze_sentiment
-from sheet_utils import get_sheet, append_to_sheet
+from sentiment_utils import analyze_customer_utterance
 
 sample_rate = 16000
-block_duration = 0.5
-#chunk_duration = 5
+block_duration = 0.05
 channels = 1
-
-SILENCE_THRESHOLD = 0.02
-SILENCE_SECONDS = 15
-silence_blocks_required = int(SILENCE_SECONDS / block_duration)
-
-#frames_per_chunk = int(sample_rate * chunk_duration)
 frames_per_block = int(sample_rate * block_duration)
+
+silence_detector = SilenceDetector(
+    block_duration=block_duration,
+    target_silence_sec=1.2,
+    buffer_blocks=20,
+    multiplier=1.5
+)
 
 audio_queue = queue.Queue()
 audio_buffer = []
 stop_event = threading.Event()
 
-model = load_whisper_model()
-sheet = get_sheet()
+model = load_whisper_model(model_size="tiny", device="cpu", compute_type="int8")
+sheet = None
 
 def transcriber():
-    global audio_buffer
+    global audio_buffer, sheet
     silence_blocks = 0
+    is_speaking = False
+
     try:
+        print("Listening for your voice...") 
+
         while not stop_event.is_set():
             block = audio_queue.get()
             audio_buffer.append(block)
-            if is_silent(block, SILENCE_THRESHOLD):
-                silence_blocks += 1
+
+            if silence_detector.is_silent(block):
+                if is_speaking:
+                    silence_blocks += 1
+                else:
+                    silence_blocks = 0
             else:
-                silence_blocks = 0
-            if silence_blocks >= silence_blocks_required:
-                print("Detected silence. Transcribing entire audio...")
-                stop_event.set()
-               
+                if not is_speaking:
+                    print("Speech detected, recording...")
+                    is_speaking = True
+                silence_blocks = 0  
+
+            # End of utterance → transcribe
+            if is_speaking and silence_blocks >= silence_detector.silence_blocks_required:
                 if audio_buffer:
                     audio_data = np.concatenate(audio_buffer).flatten().astype(np.float32)
-                    if np.any(audio_data):  
+
+                    if np.any(audio_data):
                         texts = transcribe_audio(model, audio_data)
-                        full_transcript = " ".join([text.strip() for text in texts if text.strip()])
+                        full_transcript = " ".join([t.strip() for t in texts if t.strip()])
+                        full_transcript = " ".join(full_transcript.split())
+
                         if full_transcript:
-                            print(f"Transcript: {full_transcript}")
-                            sentiment_result = analyze_sentiment(full_transcript)
-                            if sentiment_result:
-                                sentiment = sentiment_result["sentiment_analysis"]["sentiment"]
-                                summary = sentiment_result["sentiment_analysis"]["summary"]
-                                print(f"Sentiment: {sentiment}")
-                                append_to_sheet(sheet, full_transcript, sentiment, summary)
+                            timestamp = datetime.now().isoformat()
+
+                            # Sentiment + intent + summary + suggestion
+                            analysis = analyze_customer_utterance(full_transcript)
+                            sentiment = analysis["sentiment"]
+                            intent = analysis["intent"]
+                            customer_summary = analysis["summary"]
+                            suggestion = analysis["suggestion"]
+
+                            # Save to CSV
+                            append_to_csv(timestamp, full_transcript, sentiment, customer_summary, intent, suggestion)
+
+                            # Save to Google Sheet
+                            if sheet is None:
+                                try:
+                                    sheet = get_sheet()
+                                except Exception as e:
+                                    print(f"Google Sheet not connected: {e}")
+                            if sheet is not None:
+                                append_to_sheet(sheet, timestamp, full_transcript, sentiment, customer_summary, intent, suggestion)
+
+                            # Print to console
+                            print("\n" + "="*70)
+                            print(f"Timestamp        : {timestamp}")
+                            print("TRANSCRIPTION & AI SUGGESTION")
+                            print("="*70)
+                            print(f"Customer Said    : {full_transcript}")
+                            print(f"Sentiment        : {sentiment}")
+                            print(f"Intent           : {intent}")
+                            print(f"Customer Summary : {customer_summary}")
+                            print(f"Suggested Action : {suggestion}")
+                            print("="*70 + "\n")
+
                 audio_buffer = []
-                break
+                silence_blocks = 0
+                is_speaking = False
+                print("Listening for your voice...")
     except KeyboardInterrupt:
         stop_event.set()
         print("Stopped manually")
 
+    # ---- Clean stop when End Call pressed ----
+    print("Stopping recorder and clearing buffers...")
+    audio_buffer.clear()
+    with audio_queue.mutex:
+        audio_queue.queue.clear()
+
 if __name__ == "__main__":
-    recorder_thread = start_recorder(audio_queue, sample_rate, channels, frames_per_block, stop_event)
+    recorder_thread = start_recorder(
+        audio_queue,
+        sample_rate,
+        channels,
+        frames_per_block,
+        stop_event
+    )
     transcriber()
