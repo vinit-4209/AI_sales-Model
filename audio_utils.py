@@ -9,7 +9,6 @@ import threading
 
 import numpy as np
 
-# ---------------- Dynamic Silence Detection ----------------
 class SilenceDetector:
     def __init__(self, block_duration=0.05, target_silence_sec=1.2, buffer_blocks=20, multiplier=1.5):
         """
@@ -30,7 +29,7 @@ class SilenceDetector:
         if len(self.recent_rms) > self.buffer_blocks:
             self.recent_rms.pop(0)
 
-        # Dynamic threshold: mean RMS of recent blocks * multiplier
+
         dynamic_threshold = max(0.01, np.mean(self.recent_rms) * self.multiplier)
         return rms < dynamic_threshold
 
@@ -57,7 +56,7 @@ def start_recorder(audio_queue, sample_rate, channels, frames_per_block, stop_ev
             print("Listening... Speak now (Ctrl+C to stop)")
             while not stop_event.is_set():
                 sd.sleep(100)
-        print("Recorder stopped.")   # <-- add this for confirmation
+        print("Recorder stopped.") 
     thread = threading.Thread(target=recorder, daemon=True)
     thread.start()
     return thread

@@ -56,7 +56,7 @@ def analyze_customer_utterance(text):
         result = response.json()
         raw_output = result["choices"][0]["message"]["content"].strip()
 
-        # Parse JSON safely
+        
         parsed = json.loads(raw_output)
         return {
             "sentiment": parsed.get("sentiment", "neutral"),

@@ -53,7 +53,6 @@ def transcriber():
                     is_speaking = True
                 silence_blocks = 0  
 
-            # End of utterance → transcribe
             if is_speaking and silence_blocks >= silence_detector.silence_blocks_required:
                 if audio_buffer:
                     audio_data = np.concatenate(audio_buffer).flatten().astype(np.float32)
@@ -73,10 +72,10 @@ def transcriber():
                             customer_summary = analysis["summary"]
                             suggestion = analysis["suggestion"]
 
-                            # Save to CSV
+                          
                             append_to_csv(timestamp, full_transcript, sentiment, customer_summary, intent, suggestion)
 
-                            # Save to Google Sheet
+                            
                             if sheet is None:
                                 try:
                                     sheet = get_sheet()
@@ -85,7 +84,7 @@ def transcriber():
                             if sheet is not None:
                                 append_to_sheet(sheet, timestamp, full_transcript, sentiment, customer_summary, intent, suggestion)
 
-                            # Print to console
+                            
                             print("\n" + "="*70)
                             print(f"Timestamp        : {timestamp}")
                             print("TRANSCRIPTION & AI SUGGESTION")
@@ -105,7 +104,7 @@ def transcriber():
         stop_event.set()
         print("Stopped manually")
 
-    # ---- Clean stop when End Call pressed ----
+
     print("Stopping recorder and clearing buffers...")
     audio_buffer.clear()
     with audio_queue.mutex:
