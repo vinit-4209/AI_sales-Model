@@ -1,5 +1,3 @@
-#sentiment_utils.py
-
 import os
 import requests
 import json
@@ -10,13 +8,6 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 
 def analyze_customer_utterance(text):
-    """
-    Single GROQ API call that returns:
-    - sentiment: positive, neutral, negative
-    - intent: main intent of the customer
-    - summary: 1 sentence summary of what the customer wants
-    - suggestion: actionable advice for the salesperson
-    """
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
@@ -55,8 +46,6 @@ def analyze_customer_utterance(text):
         response.raise_for_status()
         result = response.json()
         raw_output = result["choices"][0]["message"]["content"].strip()
-
-        
         parsed = json.loads(raw_output)
         return {
             "sentiment": parsed.get("sentiment", "neutral"),
