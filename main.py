@@ -111,7 +111,7 @@ def transcriber():
 
                             call_transcript.append(full_transcript)
                             write_live(f"[{timestamp}] {full_transcript}")
-                            write_live(f"→ Sentiment: {sentiment}, Intent: {intent}, Suggestion: {suggestion}")
+                            write_live(f"→Suggestion: {suggestion}")
                             write_live("=" * 50)
                             update_status(sentiment, intent, customer_summary, suggestion)
 

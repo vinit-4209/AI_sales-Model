@@ -1,21 +1,31 @@
-Lead ID,Name,Pain Points,Deal Stage,Product Name,Category,Price (INR),Recommendation,Next Step
-L001,Rajesh Verma,Employees face back pain due to long sitting hours,Qualification,Ergonomic Chair X,Ergonomic Accessory,12000,Supports posture and reduces back pain,Send product brochure
-L002,Priya Sharma,Noise disturbance affecting team productivity,Negotiation,Bose Headset 700,Headset,15000,Noise cancellation boosts focus and productivity,Schedule demo call
-L003,Amit Joshi,Outdated laptops slowing work,Qualification,Laptop Pro 15,Laptop,65000,High-performance laptop for faster computing,Share financing options
-L004,Neha Gupta,Remote work requires better peripherals,Proposal,Wireless Keyboard Z,Ergonomic Accessory,3000,Compact and wireless for remote setups,Offer bundle discounts
-L005,Suresh Iyer,Security concerns with old devices,Negotiation,Smart Lock Plus,Smart Device,8000,Advanced locking for office security,Arrange installation demo
-L006,Kavita Patel,Inadequate audio quality in calls,Qualification,Conference Speaker X,Headset,7000,Clear sound for professional calls,Send customer reviews
-L007,Manish Singh,Team needs portable devices for presentations,Negotiation,Tablet Air,Smart Device,25000,Lightweight and efficient for presentations,Schedule product trial
-L008,Rekha Nair,Frequent power cuts affect work,Proposal,UPS Backup 500VA,Smart Device,5000,Ensures power backup during outages,Offer installation support
-L009,Vikram Chauhan,Employees need ergonomic workspace tools,Qualification,Desk Riser,Ergonomic Accessory,4500,Improves posture and workspace layout,Send setup guide
-L010,Pooja Malhotra,Inconsistent internet speed affecting calls,Negotiation,WiFi Extender Max,Smart Device,3500,Boosts network coverage and speed,Provide compatibility check
-L011,Arjun Mehta,Laptops overheating in peak hours,Proposal,Cooling Pad Pro,Ergonomic Accessory,2000,Prevents overheating for sustained work,Suggest usage tips
-L012,Deepa Rao,Need collaborative tools for teams,Qualification,Team Hub,Smart Device,15000,Enhances communication and coordination,Offer trial access
-L013,Harsh Vardhan,Employees complaining about eye strain,Negotiation,Blue Light Filter Glasses,Ergonomic Accessory,2500,Reduces eye strain from screens,Send product comparison
-L014,Smita Joshi,Conference rooms lack proper audio setup,Proposal,Speakerphone 300,Headset,10000,Crystal-clear audio for group calls,Schedule installation
-L015,Ravi Deshmukh,Need budget-friendly laptops for new hires,Qualification,Laptop Basic 14,Laptop,35000,Affordable yet capable for daily tasks,Offer bulk purchase discount
-L016,Anita Bansal,High employee turnover affects onboarding,Negotiation,Employee Starter Kit,Smart Device,12000,Complete setup for new employees,Offer onboarding package
-L017,Prakash Yadav,Need noise isolation solutions,Proposal,Office Partition Panels,Ergonomic Accessory,6000,Improves workspace focus and privacy,Share installation blueprint
-L018,Sonal Kapoor,Data security concerns during remote work,Qualification,VPN Service Pro,Smart Device,4000,Secure connection for remote employees,Offer trial subscription
-L019,Nitin Khatri,Inadequate accessories for mobile workers,Negotiation,Portable Docking Station,Smart Device,4500,Connects devices on the go,Share setup guide
-L020,Ritu Singh,Need accessories that fit diverse employee setups,Proposal,Universal Adapter,Smart Device,1500,Compatible with multiple devices,Send compatibility chart
+Lead ID,Name,Phone,Email Id,Needs,Product Name,Category,Price (INR),Recommendation,Next Step
+L001,Rajesh Verma,+91-9876543210,rajeshverma@dummy.com,Employees face back pain due to long sitting hours,Ergonomic Chair X,Ergonomic Accessory,12000,Supports posture and reduces back pain,Send product brochure
+L002,Priya Sharma,+91-9876543211,priyasharma@dummy.com,Noise disturbance affecting team productivity,Bose Headset 700,Headset,15000,Noise cancellation boosts focus and productivity,Schedule demo call
+L003,Amit Joshi,+91-9876543212,amitjoshi@dummy.com,Outdated laptops slowing work,Laptop Pro 15,Laptop,65000,High-performance laptop for faster computing,Share financing options
+L004,Neha Gupta,+91-9876543213,nehagupta@dummy.com,Remote work requires better peripherals,Wireless Keyboard Z,Ergonomic Accessory,3000,Compact and wireless for remote setups,Offer bundle discounts
+L005,Suresh Iyer,+91-9876543214,sureshiyer@dummy.com,Security concerns with old devices,Smart Lock Plus,Smart Device,8000,Advanced locking for office security,Arrange installation demo
+L006,Kavita Patel,+91-9876543215,kavitapatel@dummy.com,Inadequate audio quality in calls,Conference Speaker X,Headset,7000,Clear sound for professional calls,Send customer reviews
+L007,Manish Singh,+91-9876543216,manishsingh@dummy.com,Team needs portable devices for presentations,Tablet Air,Smart Device,25000,Lightweight and efficient for presentations,Schedule product trial
+L008,Rekha Nair,+91-9876543217,rekhanair@dummy.com,Frequent power cuts affect work,UPS Backup 500VA,Smart Device,5000,Ensures power backup during outages,Offer installation support
+L009,Vikram Chauhan,+91-9876543218,vikramchauhan@dummy.com,Employees need ergonomic workspace tools,Desk Riser,Ergonomic Accessory,4500,Improves posture and workspace layout,Send setup guide
+L010,Pooja Malhotra,+91-9876543219,poojamalhotra@dummy.com,Inconsistent internet speed affecting calls,WiFi Extender Max,Smart Device,3500,Boosts network coverage and speed,Provide compatibility check
+L011,Arjun Mehta,+91-9876543220,arjunmehta@dummy.com,Laptops overheating in peak hours,Cooling Pad Pro,Ergonomic Accessory,2000,Prevents overheating for sustained work,Suggest usage tips
+L012,Deepa Rao,+91-9876543221,deeparao@dummy.com,Need collaborative tools for teams,Team Hub,Smart Device,15000,Enhances communication and coordination,Offer trial access
+L013,Harsh Vardhan,+91-9876543222,harshvardhan@dummy.com,Employees complaining about eye strain,Blue Light Filter Glasses,Ergonomic Accessory,2500,Reduces eye strain from screens,Send product comparison
+L014,Smita Joshi,+91-9876543223,smitajoshi@dummy.com,Conference rooms lack proper audio setup,Speakerphone 300,Headset,10000,Crystal-clear audio for group calls,Schedule installation
+L015,Ravi Deshmukh,+91-9876543224,ravideshmukh@dummy.com,Need budget-friendly laptops for new hires,Laptop Basic 14,Laptop,35000,Affordable yet capable for daily tasks,Offer bulk purchase discount
+L016,Anita Bansal,+91-9876543225,anitabansal@dummy.com,High employee turnover affects onboarding,Employee Starter Kit,Smart Device,12000,Complete setup for new employees,Offer onboarding package
+L017,Prakash Yadav,+91-9876543226,prakashyadav@dummy.com,Need noise isolation solutions,Office Partition Panels,Ergonomic Accessory,6000,Improves workspace focus and privacy,Share installation blueprint
+L018,Sonal Kapoor,+91-9876543227,sonalkapoor@dummy.com,Data security concerns during remote work,VPN Service Pro,Smart Device,4000,Secure connection for remote employees,Offer trial subscription
+L019,Nitin Khatri,+91-9876543228,nitinkhatri@dummy.com,Inadequate accessories for mobile workers,Portable Docking Station,Smart Device,4500,Connects devices on the go,Share setup guide
+L020,Ritu Singh,+91-9876543229,ritusingh@dummy.com,Need accessories that fit diverse employee setups,Universal Adapter,Smart Device,1500,Compatible with multiple devices,Send compatibility chart
+L021,Rahul Kumar,+91-9876543230,rahul_kumar@dummy.com,Difficulty in managing multiple devices,Universal Docking Station,Smart Device,6000,Streamlines connectivity for various devices,Share product specifications
+L022,Sanjana Das,+91-9876543231,sanjana_das@dummy.com,Lack of proper lighting in workspaces,Smart Desk Lamp,Ergonomic Accessory,3000,Adjustable lighting for eye comfort,Provide lighting setup consultation
+L023,Alok Verma,+91-9876543232,alok_verma@dummy.com,Employees need better virtual meeting experience,HD Webcam Pro,Smart Device,2500,Enhances video quality for online meetings,Offer group discount
+L024,Priyanka Reddy,+91-9876543233,priyanka_reddy@dummy.com,Frequent printing needs are costly,Eco Tank Printer,Smart Device,18000,Cost-effective printing with large ink tanks,Arrange a live printing demo
+L025,Gaurav Sharma,+91-9876543234,gaurav_sharma@dummy.com,Office air quality is a concern,Air Purifier Elite,Smart Device,9000,Improves air quality for a healthier workspace,Send health benefits report
+L026,Mansi Shah,+91-9876543235,mansi_shah@dummy.com,Manual data entry is time-consuming,Barcode Scanner X,Smart Device,4000,Speeds up data entry and reduces errors,Provide integration guide
+L027,Krishnan Murthy,+91-9876543236,krishnan_murthy@dummy.com,Need reliable data storage solutions,External SSD 1TB,Smart Device,10000,Fast and secure data storage for professionals,Offer data migration support
+L028,Swati Parekh,+91-9876543237,swati_parekh@dummy.com,Difficulty in sharing content wirelessly,Wireless Presenter,Smart Device,3500,Enables seamless presentations and content sharing,Schedule a trial presentation
+L029,Devendra Singh,+91-9876543238,devendra_singh@dummy.com,Employees need portable charging solutions,Power Bank 20000mAh,Smart Device,2000,Keeps devices charged on the go,Send usage guide
+L030,Tanya Chopra,+91-9876543239,tanya_chopra@dummy.com,Need better control over office temperatures,Smart Thermostat,Smart Device,5000,Optimizes office temperature for comfort and energy,Offer energy saving report

@@ -149,7 +149,7 @@ with left_col:
     summary_text = status.get("summary", "") or ""
     
     st.markdown(f"<div class='big-box {sent_class}'><h4>Sentiment {emoji}</h4><p style='margin:0'>{sentiment_label}</p></div>", unsafe_allow_html=True)
-    st.markdown(f"<div class='big-box'><h4>Intent</h4><p style='margin:0'>{intent_text}</p></div>", unsafe_allow_html=True)
+    # st.markdown(f"<div class='big-box'><h4>Intent</h4><p style='margin:0'>{intent_text}</p></div>", unsafe_allow_html=True)
     st.markdown(f"<div class='big-box'><h4>Customer Summary</h4><p style='margin:0'>{summary_text}</p></div>", unsafe_allow_html=True)
 
     
@@ -167,6 +167,10 @@ with right_col:
     st.subheader("AI Suggested Action")
     suggestion_text = status.get("suggestion", "Waiting for customer input...") or "Waiting for customer input..."
     st.markdown(f"<div class='big-box suggestion-box'><p style='margin:0'><strong>{suggestion_text}</strong></p></div>", unsafe_allow_html=True)
+
+    st.markdown(f"<div class='big-box'><h4>Intent</h4><p style='margin:0'>{intent_text}</p></div>", unsafe_allow_html=True)
+
+    
 
 
 # --- Auto-refresh during call 
