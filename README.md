@@ -51,6 +51,8 @@ This project records audio in real-time, transcribes speech using a Whisper mode
 - **Real-time audio recording** using your microphone
 - **Automatic speech transcription** with [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
 - **Sentiment analysis** via the Groq API (Llama-3.1-8b-instant)
+- **CRM Integration** - Fetch customer data from CSV and generate AI-powered recommendations
+- **Product Recommendations** - AI-generated product suggestions based on customer history
 - **Automatic logging** of transcript, sentiment, and summary to Google Sheets
 - **Auto-stop** after configurable silence duration
 
@@ -61,11 +63,14 @@ This project records audio in real-time, transcribes speech using a Whisper mode
 ```
 AI_sales Model/
 │
-├── audio_utils.py        # Audio recording and silence detection
-├── whisper_utils.py      # Whisper model loading and transcription
-├── sentiment_utils.py    # Sentiment analysis via Groq API
-├── sheet_utils.py        # Google Sheets integration
+├── app.py                # Streamlit web interface
+├── audio.py              # Audio recording and silence detection
+├── whisper_model.py      # Whisper model loading and transcription
+├── sentiment.py          # Sentiment analysis via Groq API
+├── sheet.py              # Google Sheets integration
+├── crm_functions.py      # CRM data fetching and AI recommendations
 ├── main.py               # Main integration script
+├── CRM_data.csv          # Customer data for CRM integration
 ├── requirements.txt      # Python dependencies
 ├── credentials.json      # Google Service Account credentials (not included)
 ├── .env                  # Environment variables (GROQ_API_KEY)
@@ -114,6 +119,22 @@ GROQ_API_KEY=your_groq_api_key_here
 
 ## Usage
 
+### Web Interface (Recommended)
+
+Run the Streamlit app:
+
+```sh
+streamlit run app.py
+```
+
+1. **Customer Details**: Enter customer name, phone, and email in the sidebar
+2. **Fetch Customer Data**: Click "🔍 Fetch Customer Data" to get CRM information
+3. **View Recommendations**: See AI-generated product recommendations based on customer history
+4. **Start Call**: Use the call control buttons to start/stop recording
+5. **Live Analysis**: View real-time transcription and sentiment analysis
+
+### Command Line Interface
+
 Run the main script:
 
 ```sh
@@ -123,6 +144,19 @@ python main.py
 - Speak into your microphone.
 - The script will transcribe your speech, analyze sentiment, and log results to your Google Sheet.
 - The process will automatically stop after 15 seconds of silence (configurable in `main.py`).
+
+## CRM Integration
+
+The system now includes CRM functionality:
+
+1. **Customer Data Fetching**: Enter a phone number to fetch customer data from `CRM_data.csv`
+2. **AI-Powered Analysis**: Uses Groq's Llama-3.1-70b model to analyze customer history
+3. **Product Recommendations**: Generates personalized product suggestions based on:
+   - Previous purchase history
+   - Product category preferences
+   - Price range analysis
+   - Upselling/cross-selling opportunities
+4. **Sales Insights**: Provides key talking points and customer profile summary
 
 ---
 

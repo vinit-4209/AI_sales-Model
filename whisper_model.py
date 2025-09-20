@@ -1,3 +1,4 @@
+#whisper_model.py
 from faster_whisper import WhisperModel
 import numpy as np
 

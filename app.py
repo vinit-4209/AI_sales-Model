@@ -1,3 +1,4 @@
+#app.py 
 import os
 import sys
 import time
@@ -16,6 +17,42 @@ if "listening" not in st.session_state:
     st.session_state.listening = False
 if "post_summary" not in st.session_state:
     st.session_state.post_summary = "" 
+# if "customer_name" not in st.session_state:
+#     st.session_state.customer_name = ""
+if "customer_phone" not in st.session_state:
+    st.session_state.customer_phone = ""
+# if "customer_email" not in st.session_state:
+#     st.session_state.customer_email = ""
+if "customer_data" not in st.session_state:
+    st.session_state.customer_data = None
+if "product_recommendations" not in st.session_state:
+    st.session_state.product_recommendations = ""
+
+# ------------------- Sidebar: Customer Details -------------------
+st.sidebar.header("Customer Details")
+#st.session_state.customer_name = st.sidebar.text_input("Customer Name", value=st.session_state.customer_name)
+st.session_state.customer_phone = st.sidebar.text_input("Customer Phone", value=st.session_state.customer_phone)
+#st.session_state.customer_email = st.sidebar.text_input("Customer Email", value=st.session_state.customer_email)
+
+# Submit button for customer details
+if st.sidebar.button("Fetch Customer Data", use_container_width=True):
+    if st.session_state.customer_phone:
+        # Import and call the CRM functions
+        from crm_functions import get_client_data_from_csv, summarize_client_data
+        
+        # Fetch customer data from CSV
+        customer_data = get_client_data_from_csv(st.session_state.customer_phone)
+        st.session_state.customer_data = customer_data
+        
+        if customer_data:
+            # Generate AI summary and recommendations
+            summary = summarize_client_data(customer_data)
+            st.session_state.product_recommendations = summary
+            st.sidebar.success("Customer data fetched successfully!")
+        else:
+            st.sidebar.error("No customer found with this phone number.")
+    else:
+        st.sidebar.error("Please enter a phone number to fetch customer data.")
 
 # ------------------- Styles -------------------
 st.markdown("""
@@ -42,6 +79,7 @@ LIVE_FILE = "transcript_live.txt"
 STATUS_FILE = "status_live.json"
 STOP_FILE = "stop_signal.txt"
 
+# ------------------- Helper Functions -------------------
 def read_live():
     if os.path.exists(LIVE_FILE):
         with open(LIVE_FILE, "r", encoding="utf-8") as f:
@@ -57,12 +95,11 @@ def read_status():
                 return {}
     return {}
 
+# ------------------- Backend Control -------------------
 def start_backend():
     if st.session_state.proc and st.session_state.proc.poll() is None:
         st.warning("Backend already running.")
         return
-
-    # Clean up any existing stop file
     if os.path.exists(STOP_FILE):
         os.remove(STOP_FILE)
 
@@ -81,14 +118,9 @@ def stop_backend():
         return
 
     try:
-        # Create stop file to signal backend to stop gracefully
         with open(STOP_FILE, "w") as f:
             f.write("stop")
-        
-        # Wait for backend to process and save files
         time.sleep(3)
-        
-        # Force kill if still running
         if st.session_state.proc.poll() is None:
             if os.name == "nt":
                 st.session_state.proc.terminate()
@@ -105,57 +137,41 @@ def stop_backend():
         if os.path.exists(LIVE_FILE):
             with open(LIVE_FILE, "r", encoding="utf-8") as f:
                 st.session_state.post_summary = f.read()
-        st.rerun()  # Use updated method
+        st.rerun()
 
-# ------------------- UI -------------------
-
+# ------------------- Layout -------------------
 left_col, right_col = st.columns([1, 1], gap="large")
 
-# -LEFT COLUMN 
+# --- Left Column ---
 with left_col:
-    # Call Controls
     st.subheader("Call Control")
     col1, col2 = st.columns(2)
-
     with col1:
         if st.button("▶️ Start Call", use_container_width=True):
             start_backend()
-
     with col2:
         if st.button("⏹ End Call", use_container_width=True):
             stop_backend()
 
-    # Backend Status 
     st.subheader("Backend Status")
     if st.session_state.proc and st.session_state.proc.poll() is None:
         st.success("Backend is running")
     else:
         st.info("Backend is stopped")
-    
-    # Check Google Sheets credentials
-    if os.path.exists("credentials.json"):
-        st.success("Google Sheets credentials found")
-    else:
-        st.warning("Google Sheets credentials not found - data won't be saved to sheets")
 
-    # ----- Sentiment / Intent / Suggestion 
     st.subheader("Sentiment Analysis")
     status = read_status()
-    sentiment_label = status.get("sentiment", "Neutral") or "Neutral"
+    sentiment_label = status.get("sentiment", "Neutral")
     sentiment_key = sentiment_label.lower()
     emoji = {"positive":"🙂", "neutral":"😐", "negative":"🙁"}.get(sentiment_key, "😐")
     sent_class = {"positive":"sentiment-positive","neutral":"sentiment-neutral","negative":"sentiment-negative"}.get(sentiment_key, "sentiment-neutral")
-    intent_text = status.get("intent", "Unknown") or "Unknown"
-    summary_text = status.get("summary", "") or ""
-    
+    summary_text = status.get("summary", "")
+
     st.markdown(f"<div class='big-box {sent_class}'><h4>Sentiment {emoji}</h4><p style='margin:0'>{sentiment_label}</p></div>", unsafe_allow_html=True)
-    # st.markdown(f"<div class='big-box'><h4>Intent</h4><p style='margin:0'>{intent_text}</p></div>", unsafe_allow_html=True)
     st.markdown(f"<div class='big-box'><h4>Customer Summary</h4><p style='margin:0'>{summary_text}</p></div>", unsafe_allow_html=True)
 
-    
-# ----- RIGHT COLUMN 
+# --- Right Column ---
 with right_col:
-    # ----- Live Transcript 
     st.subheader("Live Transcript")
     if st.session_state.listening:
         live_text = read_live()
@@ -163,28 +179,24 @@ with right_col:
     else:
         st.info("No live transcription (start a call to see it).")
 
-# ---- AI Suggestion
-    st.subheader("AI Suggested Action")
-    suggestion_text = status.get("suggestion", "Waiting for customer input...") or "Waiting for customer input..."
+    st.subheader("AI Suggestions for Customer")
+    suggestion_text = status.get("suggestion", "Waiting for customer input...")
     st.markdown(f"<div class='big-box suggestion-box'><p style='margin:0'><strong>{suggestion_text}</strong></p></div>", unsafe_allow_html=True)
 
-    st.markdown(f"<div class='big-box'><h4>Intent</h4><p style='margin:0'>{intent_text}</p></div>", unsafe_allow_html=True)
+    # Product Recommendations Section
+    if st.session_state.product_recommendations:
+        st.subheader("Product Recommendations")
+        st.markdown(f"<div class='big-box suggestion-box'><p style='margin:0'>{st.session_state.product_recommendations}</p></div>", unsafe_allow_html=True)
 
-    
-
-
-# --- Auto-refresh during call 
+# --- Auto-refresh every 2 seconds
 if st.session_state.listening:
-    st_autorefresh(interval=2000, key="auto_refresh_key")  
-    # refresh every 2 sec
+    st_autorefresh(interval=2000, key="auto_refresh_key")
 
-# ---- Post-call Summary 
+# ------------------- Post-Call Summary -------------------
 st.subheader("Post-Call Summary")
-
-# Add refresh button for post-call summary
 col1, col2 = st.columns([3, 1])
 with col2:
-    if st.button("🔄 Refresh Summary", help="Click to refresh post-call summary"):
+    if st.button("🔄 Refresh Summary"):
         st.rerun()
 
 post_summary_file = "post_summary.json"
@@ -193,7 +205,7 @@ if os.path.exists(post_summary_file):
         with open(post_summary_file, "r", encoding="utf-8") as f:
             data = json.load(f)
         overall_sentiment = data.get("sentiment", "Unknown")
-        overall_summary = data.get("summary", "Not yet summary")
+        overall_summary = data.get("summary", "Not yet available")
         full_transcript = data.get("transcript", "")
 
         sent_class = {"positive":"sentiment-positive","neutral":"sentiment-neutral","negative":"sentiment-negative"}.get(overall_sentiment.lower(), "sentiment-neutral")
@@ -203,7 +215,7 @@ if os.path.exists(post_summary_file):
         st.markdown(f"<div class='big-box'><h4>Overall Customer Summary</h4><p>{overall_summary}</p></div>", unsafe_allow_html=True)
 
         with st.expander("Full Transcript"):
-            st.markdown(f"<div class='big-box transcript-box' style='white-space:pre-wrap'>{full_transcript}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='big-box transcript-box'>{full_transcript}</div>", unsafe_allow_html=True)
 
     except Exception as e:
         st.error(f"Error loading post-call summary: {e}")
