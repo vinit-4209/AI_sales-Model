@@ -1,5 +1,3 @@
-#main.py
-
 import os
 import queue
 import threading
@@ -12,10 +10,12 @@ from datetime import datetime
 from sheet import get_sheet, save_post_call_summary, extract_customer_name
 from audio import start_recorder, SilenceDetector
 from whisper_model import load_whisper_model, transcribe_audio
-from sentiment import analyze_customer_utterance
+from sentiment import analyze_customer_utterance, analyze_post_call_summary
+
 
 # ------------------- Config -------------------
 call_transcript = []
+
 sample_rate = 16000
 block_duration = 0.05
 channels = 1
@@ -32,21 +32,28 @@ audio_queue = queue.Queue()
 audio_buffer = []
 stop_event = threading.Event()
 
-model = load_whisper_model(model_size="tiny.en", device="cpu", compute_type="int8")
+model = load_whisper_model(
+    model_size="tiny.en",
+    device="cpu",
+    compute_type="int8"
+)
 
 LIVE_FILE = "transcript_live.txt"
 STATUS_FILE = "status_live.json"
 STOP_FILE = "stop_signal.txt"
+
 
 # ------------------- File Utilities -------------------
 def write_live(text):
     with open(LIVE_FILE, "a", encoding="utf-8") as f:
         f.write(text + "\n")
 
+
 def clear_live():
     for file in [LIVE_FILE, STATUS_FILE, STOP_FILE]:
         if os.path.exists(file):
             os.remove(file)
+
 
 def update_status(sentiment, summary, suggestion):
     """
@@ -60,9 +67,11 @@ def update_status(sentiment, summary, suggestion):
     with open(STATUS_FILE, "w", encoding="utf-8") as f:
         json.dump(status, f)
 
+
 def handle_exit(signum, frame):
     print(f"\nReceived signal {signum}, stopping gracefully...")
     stop_event.set()
+
 
 # ------------------- Transcription Loop -------------------
 def transcriber():
@@ -72,6 +81,7 @@ def transcriber():
 
     try:
         print("Listening for your voice...")
+
         while not stop_event.is_set() and not os.path.exists(STOP_FILE):
             block = audio_queue.get()
             audio_buffer.append(block)
@@ -100,14 +110,17 @@ def transcriber():
                         if full_transcript:
                             timestamp = datetime.now().isoformat()
                             analysis = analyze_customer_utterance(full_transcript)
+
                             sentiment = analysis["sentiment"]
                             summary = analysis["summary"]
                             suggestion = analysis["suggestion"]
 
                             call_transcript.append(full_transcript)
+
                             write_live(f"[{timestamp}] {full_transcript}")
                             write_live(f"→Recommendation: {suggestion}")
                             write_live("=" * 50)
+
                             update_status(sentiment, summary, suggestion)
 
                             print("\n" + "=" * 70)
@@ -133,26 +146,38 @@ def transcriber():
         # ------------------- Save Post-Call Summary -------------------
         if call_transcript:
             final_text = " ".join(call_transcript)
-            final_analysis = analyze_customer_utterance(final_text)
-            overall_sentiment = final_analysis["sentiment"]
-            overall_summary = final_analysis["summary"]
+            final_analysis = analyze_post_call_summary(final_text)
 
-            # Save JSON
+            overall_sentiment = final_analysis.get("sentiment", "neutral")
+            overall_summary = final_analysis.get("summary", "No summary available")
+
+            # Save JSON (preserve old keys + include new structure)
             post_summary_data = {
                 "transcript": final_text,
                 "sentiment": overall_sentiment,
-                "summary": overall_summary
+                "summary": overall_summary,
+                "structured": final_analysis
             }
             with open("post_summary.json", "w", encoding="utf-8") as f:
                 json.dump(post_summary_data, f, indent=2)
+
             print("Post-call summary saved to post_summary.json")
 
             # Save to Google Sheet
             try:
                 sheet = get_sheet()
                 customer_name = extract_customer_name(final_text)
-                save_post_call_summary(sheet, customer_name, final_text, overall_sentiment, overall_summary)
+
+                save_post_call_summary(
+                    sheet,
+                    customer_name,
+                    final_text,
+                    overall_sentiment,
+                    overall_summary
+                )
+
                 print("Post-call summary saved to Google Sheet")
+
             except Exception as e:
                 print(f"Could not save to Google Sheet: {e}")
 
@@ -162,8 +187,9 @@ def transcriber():
         call_transcript.clear()
         with audio_queue.mutex:
             audio_queue.queue.clear()
-        
+
         sys.exit(0)
+
 
 # ------------------- Main -------------------
 if __name__ == "__main__":
@@ -178,4 +204,5 @@ if __name__ == "__main__":
         frames_per_block,
         stop_event
     )
+
     transcriber()

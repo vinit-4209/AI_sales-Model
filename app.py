@@ -214,6 +214,56 @@ if os.path.exists(post_summary_file):
         st.markdown(f"<div class='big-box {sent_class}'><h4>Overall Sentiment {emoji}</h4><p>{overall_sentiment}</p></div>", unsafe_allow_html=True)
         st.markdown(f"<div class='big-box'><h4>Overall Customer Summary</h4><p>{overall_summary}</p></div>", unsafe_allow_html=True)
 
+        # Structured post-call sections (if available)
+        structured = data.get("structured", {}) or {}
+        customer_intent = structured.get("customer_intent", "")
+        key_topics = structured.get("key_topics", []) or []
+        objections = structured.get("objections", []) or []
+        resolutions = structured.get("resolutions", []) or []
+        next_steps = structured.get("next_steps", []) or []
+        recommended_follow_up = structured.get("recommended_follow_up", "")
+        win_risk = structured.get("win_risk", "")
+        call_score = structured.get("call_score", "")
+
+        # Consolidated Overall Call Summary box
+        has_any = any([
+            customer_intent, key_topics, objections, resolutions, next_steps, recommended_follow_up, win_risk, call_score != ""
+        ])
+        if has_any:
+            topics_html = "".join([f"<li>{t}</li>" for t in key_topics]) if key_topics else ""
+            obj_html = "".join([f"<li>{o}</li>" for o in objections]) if objections else ""
+            res_html = "".join([f"<li>{r}</li>" for r in resolutions]) if resolutions else ""
+            steps_html = "".join([f"<li>{s}</li>" for s in next_steps]) if next_steps else ""
+            meta = []
+            # if win_risk:
+            #     meta.append(f"Win Risk: <strong>{win_risk}</strong>")
+            # if call_score != "":
+            #     meta.append(f"Call Score: <strong>{call_score}</strong>")
+            # meta_text = " &nbsp; | &nbsp; ".join(meta)
+
+            combined_html = "<div class='big-box'>"
+            combined_html += "<h4>Overall Call Summary</h4>"
+            if customer_intent:
+                combined_html += f"<p style='margin:0 0 8px 0'><strong>Customer Intent:</strong> {customer_intent}</p>"
+            if key_topics:
+                combined_html += f"<div style='margin:8px 0'><strong>Key Topics:</strong><ul style='margin:6px 0 0 20px'>{topics_html}</ul></div>"
+            if objections or resolutions:
+                combined_html += "<div style='display:flex; gap:20px; flex-wrap:wrap; margin:8px 0'>"
+                if objections:
+                    combined_html += f"<div style='flex:1; min-width:200px'><strong>Objections</strong><ul style='margin:6px 0 0 20px'>{obj_html}</ul></div>"
+                if resolutions:
+                    combined_html += f"<div style='flex:1; min-width:200px'><strong>Resolutions</strong><ul style='margin:6px 0 0 20px'>{res_html}</ul></div>"
+                combined_html += "</div>"
+            if next_steps:
+                combined_html += f"<div class='suggestion-box' style='padding:10px; margin:8px 0'><strong>Next Steps</strong><ul style='margin:6px 0 0 20px'>{steps_html}</ul></div>"
+            if recommended_follow_up:
+                combined_html += f"<div class='suggestion-box' style='padding:10px; margin:8px 0'><strong>Recommended Follow-up:</strong> {recommended_follow_up}</div>"
+            # if meta:
+            #     combined_html += f"<p style='margin:8px 0 0 0'>{meta_text}</p>"
+            # combined_html += "</div>"
+
+            st.markdown(combined_html, unsafe_allow_html=True)
+
         with st.expander("Full Transcript"):
             st.markdown(f"<div class='big-box transcript-box'>{full_transcript}</div>", unsafe_allow_html=True)
 
