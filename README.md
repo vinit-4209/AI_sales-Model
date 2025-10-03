@@ -199,8 +199,9 @@ This project is for educational and demonstration purposes.
 ![Demo1](./images/img1.png)
 
 ## Overall Post-Call Summary
-![Demo2](./images/img2.png)
 ![Demo3](./images/img3.png)
+![Demo2](./images/img2.png)
+
 
 
 ## Acknowledgements
