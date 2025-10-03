@@ -190,8 +190,17 @@ All dependencies are listed in `requirements.txt`.
 This project is for educational and demonstration purposes.
 
 ---
-![Logo](./images/img1.png)
 
+## DEMO Purpose
+## Live Transcription & Suggestions
+![Demo4](./images/img4.png)
+
+## Product Recommendation
+![Demo1](./images/img1.png)
+
+## Overall Post-Call Summary
+![Demo2](./images/img2.png)
+![Demo3](./images/img3.png)
 
 
 ## Acknowledgements
