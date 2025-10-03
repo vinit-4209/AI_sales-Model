@@ -190,6 +190,9 @@ All dependencies are listed in `requirements.txt`.
 This project is for educational and demonstration purposes.
 
 ---
+![Logo](./images/img1.png)
+
+
 
 ## Acknowledgements
 
