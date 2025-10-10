@@ -32,11 +32,13 @@ audio_queue = queue.Queue()
 audio_buffer = []
 stop_event = threading.Event()
 
-model = load_whisper_model(
-    model_size="tiny.en",
-    device="cpu",
-    compute_type="int8"
-)
+# model = load_whisper_model(
+#     model_size="tiny.en",
+#     device="cpu",
+#     compute_type="int8"
+# )
+model = load_whisper_model("whisper-large-v3-turbo")
+
 
 LIVE_FILE = "transcript_live.txt"
 STATUS_FILE = "status_live.json"
