@@ -235,11 +235,7 @@ if os.path.exists(post_summary_file):
             res_html = "".join([f"<li>{r}</li>" for r in resolutions]) if resolutions else ""
             steps_html = "".join([f"<li>{s}</li>" for s in next_steps]) if next_steps else ""
             meta = []
-            # if win_risk:
-            #     meta.append(f"Win Risk: <strong>{win_risk}</strong>")
-            # if call_score != "":
-            #     meta.append(f"Call Score: <strong>{call_score}</strong>")
-            # meta_text = " &nbsp; | &nbsp; ".join(meta)
+           
 
             combined_html = "<div class='big-box'>"
             combined_html += "<h4>Overall Call Summary</h4>"
@@ -258,9 +254,7 @@ if os.path.exists(post_summary_file):
                 combined_html += f"<div class='suggestion-box' style='padding:10px; margin:8px 0'><strong>Next Steps</strong><ul style='margin:6px 0 0 20px'>{steps_html}</ul></div>"
             if recommended_follow_up:
                 combined_html += f"<div class='suggestion-box' style='padding:10px; margin:8px 0'><strong>Recommended Follow-up:</strong> {recommended_follow_up}</div>"
-            # if meta:
-            #     combined_html += f"<p style='margin:8px 0 0 0'>{meta_text}</p>"
-            # combined_html += "</div>"
+            
 
             st.markdown(combined_html, unsafe_allow_html=True)
 
