@@ -1,11 +1,11 @@
-# Fast Whisper – Optimized Speech-to-Text System
+## Whisper – Optimized Speech-to-Text System
 
-Fast Whisper is an **optimized, faster, and memory-efficient implementation** of OpenAI’s Whisper Automatic Speech Recognition (ASR) model.  
+Whisper is an **optimized, faster, and memory-efficient implementation** of OpenAI’s Whisper Automatic Speech Recognition (ASR) model.  
 It delivers **real-time transcription** performance while retaining Whisper’s **multilingual accuracy** and **robust handling of accents**. 
 
 ---
 
-## 🚀 What is Fast Whisper?
+## 🚀 What is Whisper?
 
 - Converts Whisper models into **CTranslate2** or **Faster-Whisper** format for optimized CPU/GPU inference.
 - Provides **streaming transcription** for **low-latency applications**.
@@ -14,7 +14,7 @@ It delivers **real-time transcription** performance while retaining Whisper’s 
 
 ---
 
-## 💡 Why Use Fast Whisper?
+## 💡 Why Use Whisper?
 
 OpenAI’s original Whisper model is **accurate but computationally heavy**. Fast Whisper solves this by:
 
@@ -31,14 +31,8 @@ OpenAI’s original Whisper model is **accurate but computationally heavy**. Fas
 
 ---
 
-## ⚙ How Does It Work?
 
-1. **Model Optimization** – Converts Whisper models into an efficient inference engine using CTranslate2.
-2. **Quantization** – Uses **int8/int16 precision** instead of FP32 to reduce memory usage and speed up processing.
-3. **Streaming Support** – Processes audio in **small chunks** for low-latency transcription.
-4. **Hardware Utilization** – Optimized for **CPU/GPU acceleration** without requiring expensive hardware.
 
----
 
 # AI Sales Model: Real-Time Speech Transcription, Sentiment Analysis, and Google Sheets Logging
 
@@ -173,7 +167,6 @@ You can adjust these parameters in `main.py`:
 ## Requirements
 
 - Python 3.8+
-- [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
 - sounddevice
 - numpy
 - requests
@@ -206,6 +199,5 @@ This project is for educational and demonstration purposes.
 
 ## Acknowledgements
 
-- [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
 - [Groq API](https://console.groq.com/)
 - [Google Sheets API](https://developers.google.com/sheets/api)
