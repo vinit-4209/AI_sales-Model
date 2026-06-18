@@ -1,51 +1,52 @@
-#app.py 
-import os
-import sys
-import time
-import signal
-import subprocess
 import json
+import os
+
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
+from streamlit_webrtc import WebRtcMode, webrtc_streamer
+
+from main import LIVE_FILE, POST_SUMMARY_FILE, STATUS_FILE, SalesCallPipeline
+from webrtc_audio import build_audio_processor_factory
 
 st.set_page_config(page_title="AI Sales Call Assistant", layout="wide")
 
-# ------------------- Session State -------------------
-if "proc" not in st.session_state:
-    st.session_state.proc = None
-if "listening" not in st.session_state:
-    st.session_state.listening = False
-if "post_summary" not in st.session_state:
-    st.session_state.post_summary = "" 
-# if "customer_name" not in st.session_state:
-#     st.session_state.customer_name = ""
-if "customer_phone" not in st.session_state:
-    st.session_state.customer_phone = ""
-# if "customer_email" not in st.session_state:
-#     st.session_state.customer_email = ""
-if "customer_data" not in st.session_state:
-    st.session_state.customer_data = None
-if "product_recommendations" not in st.session_state:
-    st.session_state.product_recommendations = ""
+
+def get_backend():
+    if "call_backend" not in st.session_state or st.session_state.call_backend is None:
+        st.session_state.call_backend = SalesCallPipeline()
+    return st.session_state.call_backend
+
+
+def ensure_session_state():
+    if "listening" not in st.session_state:
+        st.session_state.listening = False
+    if "post_summary" not in st.session_state:
+        st.session_state.post_summary = ""
+    if "customer_phone" not in st.session_state:
+        st.session_state.customer_phone = ""
+    if "customer_data" not in st.session_state:
+        st.session_state.customer_data = None
+    if "product_recommendations" not in st.session_state:
+        st.session_state.product_recommendations = ""
+
+
+ensure_session_state()
+backend = get_backend()
 
 # ------------------- Sidebar: Customer Details -------------------
 st.sidebar.header("Customer Details")
-#st.session_state.customer_name = st.sidebar.text_input("Customer Name", value=st.session_state.customer_name)
-st.session_state.customer_phone = st.sidebar.text_input("Customer Phone", value=st.session_state.customer_phone)
-#st.session_state.customer_email = st.sidebar.text_input("Customer Email", value=st.session_state.customer_email)
+st.session_state.customer_phone = st.sidebar.text_input(
+    "Customer Phone", value=st.session_state.customer_phone
+)
 
-# Submit button for customer details
 if st.sidebar.button("Fetch Customer Data", use_container_width=True):
     if st.session_state.customer_phone:
-        # Import and call the CRM functions
         from crm_functions import get_client_data_from_csv, summarize_client_data
-        
-        # Fetch customer data from CSV
+
         customer_data = get_client_data_from_csv(st.session_state.customer_phone)
         st.session_state.customer_data = customer_data
-        
+
         if customer_data:
-            # Generate AI summary and recommendations
             summary = summarize_client_data(customer_data)
             st.session_state.product_recommendations = summary
             st.sidebar.success("Customer data fetched successfully!")
@@ -55,7 +56,8 @@ if st.sidebar.button("Fetch Customer Data", use_container_width=True):
         st.sidebar.error("Please enter a phone number to fetch customer data.")
 
 # ------------------- Styles -------------------
-st.markdown("""
+st.markdown(
+    """
 <style>
 .big-box {padding:16px;border-radius:14px;margin-bottom:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08); border:1px solid #eee;}
 .sentiment-positive {background:#e9fbea;}
@@ -71,73 +73,63 @@ h4 {margin-top:0;}
     .main-container {flex-direction: column;}
 }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 st.title("🎙 Real-Time AI Sales Call Assistant")
 
-LIVE_FILE = "transcript_live.txt"
-STATUS_FILE = "status_live.json"
-STOP_FILE = "stop_signal.txt"
 
-# ------------------- Helper Functions -------------------
 def read_live():
     if os.path.exists(LIVE_FILE):
-        with open(LIVE_FILE, "r", encoding="utf-8") as f:
-            return f.read()
+        with open(LIVE_FILE, "r", encoding="utf-8") as file_handle:
+            return file_handle.read()
     return "Waiting for speech..."
+
 
 def read_status():
     if os.path.exists(STATUS_FILE):
-        with open(STATUS_FILE, "r", encoding="utf-8") as f:
+        with open(STATUS_FILE, "r", encoding="utf-8") as file_handle:
             try:
-                return json.load(f)
+                return json.load(file_handle)
             except json.JSONDecodeError:
                 return {}
     return {}
 
-# ------------------- Backend Control -------------------
+
 def start_backend():
-    if st.session_state.proc and st.session_state.proc.poll() is None:
+    if backend.is_running():
         st.warning("Backend already running.")
         return
-    if os.path.exists(STOP_FILE):
-        os.remove(STOP_FILE)
 
-    python_exe = sys.executable
-    st.session_state.proc = subprocess.Popen(
-        [python_exe, "main.py"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
-    )
+    backend.start()
     st.session_state.listening = True
     st.session_state.post_summary = ""
 
+
 def stop_backend():
-    if st.session_state.proc is None:
+    if not backend.is_running():
         st.session_state.listening = False
+        if os.path.exists(POST_SUMMARY_FILE):
+            with open(POST_SUMMARY_FILE, "r", encoding="utf-8") as file_handle:
+                st.session_state.post_summary = file_handle.read()
+        st.rerun()
         return
 
-    try:
-        with open(STOP_FILE, "w") as f:
-            f.write("stop")
-        time.sleep(3)
-        if st.session_state.proc.poll() is None:
-            if os.name == "nt":
-                st.session_state.proc.terminate()
-            else:
-                st.session_state.proc.send_signal(signal.SIGTERM)
-            time.sleep(1)
-            if st.session_state.proc.poll() is None:
-                st.session_state.proc.kill()
-    except Exception as e:
-        st.error(f"Error stopping backend: {e}")
-    finally:
-        st.session_state.proc = None
-        st.session_state.listening = False
-        if os.path.exists(LIVE_FILE):
-            with open(LIVE_FILE, "r", encoding="utf-8") as f:
-                st.session_state.post_summary = f.read()
-        st.rerun()
+    backend.stop(wait_for_finalize=True, timeout=30)
+    st.session_state.listening = False
+
+    if os.path.exists(POST_SUMMARY_FILE):
+        with open(POST_SUMMARY_FILE, "r", encoding="utf-8") as file_handle:
+            st.session_state.post_summary = file_handle.read()
+    elif os.path.exists(LIVE_FILE):
+        with open(LIVE_FILE, "r", encoding="utf-8") as file_handle:
+            st.session_state.post_summary = file_handle.read()
+
+    st.rerun()
+
+
+status = read_status()
 
 # ------------------- Layout -------------------
 left_col, right_col = st.columns([1, 1], gap="large")
@@ -154,39 +146,74 @@ with left_col:
             stop_backend()
 
     st.subheader("Backend Status")
-    if st.session_state.proc and st.session_state.proc.poll() is None:
+    if backend.is_running():
         st.success("Backend is running")
     else:
         st.info("Backend is stopped")
 
+    webrtc_streamer(
+        key="sales-call-mic",
+        mode=WebRtcMode.SENDONLY,
+        media_stream_constraints={"video": False, "audio": True},
+        desired_playing_state=st.session_state.listening,
+        async_processing=True,
+        sendback_audio=False,
+        sendback_video=False,
+        audio_processor_factory=build_audio_processor_factory(
+            backend.audio_queue,
+            backend.stop_event,
+            target_sample_rate=backend.sample_rate,
+            block_duration=backend.block_duration,
+        ),
+        audio_html_attrs={"controls": False, "autoPlay": True, "style": {"display": "none"}},
+        video_html_attrs={"hidden": True},
+    )
+
     st.subheader("Sentiment Analysis")
-    status = read_status()
     sentiment_label = status.get("sentiment", "Neutral")
     sentiment_key = sentiment_label.lower()
-    emoji = {"positive":"🙂", "neutral":"😐", "negative":"🙁"}.get(sentiment_key, "😐")
-    sent_class = {"positive":"sentiment-positive","neutral":"sentiment-neutral","negative":"sentiment-negative"}.get(sentiment_key, "sentiment-neutral")
+    emoji = {"positive": "🙂", "neutral": "😐", "negative": "🙁"}.get(sentiment_key, "😐")
+    sent_class = {
+        "positive": "sentiment-positive",
+        "neutral": "sentiment-neutral",
+        "negative": "sentiment-negative",
+    }.get(sentiment_key, "sentiment-neutral")
     summary_text = status.get("summary", "")
 
-    st.markdown(f"<div class='big-box {sent_class}'><h4>Sentiment {emoji}</h4><p style='margin:0'>{sentiment_label}</p></div>", unsafe_allow_html=True)
-    st.markdown(f"<div class='big-box'><h4>Customer Summary</h4><p style='margin:0'>{summary_text}</p></div>", unsafe_allow_html=True)
+    st.markdown(
+        f"<div class='big-box {sent_class}'><h4>Sentiment {emoji}</h4><p style='margin:0'>{sentiment_label}</p></div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f"<div class='big-box'><h4>Customer Summary</h4><p style='margin:0'>{summary_text}</p></div>",
+        unsafe_allow_html=True,
+    )
 
 # --- Right Column ---
 with right_col:
     st.subheader("Live Transcript")
     if st.session_state.listening:
         live_text = read_live()
-        st.markdown(f"<div class='big-box transcript-box'>{live_text}</div>", unsafe_allow_html=True)
+        st.markdown(
+            f"<div class='big-box transcript-box'>{live_text}</div>",
+            unsafe_allow_html=True,
+        )
     else:
         st.info("No live transcription (start a call to see it).")
 
     st.subheader("AI Suggestions for Customer")
     suggestion_text = status.get("suggestion", "Waiting for customer input...")
-    st.markdown(f"<div class='big-box suggestion-box'><p style='margin:0'><strong>{suggestion_text}</strong></p></div>", unsafe_allow_html=True)
+    st.markdown(
+        f"<div class='big-box suggestion-box'><p style='margin:0'><strong>{suggestion_text}</strong></p></div>",
+        unsafe_allow_html=True,
+    )
 
-    # Product Recommendations Section
     if st.session_state.product_recommendations:
         st.subheader("Product Recommendations")
-        st.markdown(f"<div class='big-box suggestion-box'><p style='margin:0'>{st.session_state.product_recommendations}</p></div>", unsafe_allow_html=True)
+        st.markdown(
+            f"<div class='big-box suggestion-box'><p style='margin:0'>{st.session_state.product_recommendations}</p></div>",
+            unsafe_allow_html=True,
+        )
 
 # --- Auto-refresh every 2 seconds
 if st.session_state.listening:
@@ -199,22 +226,33 @@ with col2:
     if st.button("🔄 Refresh Summary"):
         st.rerun()
 
-post_summary_file = "post_summary.json"
-if os.path.exists(post_summary_file):
+if os.path.exists(POST_SUMMARY_FILE):
     try:
-        with open(post_summary_file, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        with open(POST_SUMMARY_FILE, "r", encoding="utf-8") as file_handle:
+            data = json.load(file_handle)
+
         overall_sentiment = data.get("sentiment", "Unknown")
         overall_summary = data.get("summary", "Not yet available")
         full_transcript = data.get("transcript", "")
 
-        sent_class = {"positive":"sentiment-positive","neutral":"sentiment-neutral","negative":"sentiment-negative"}.get(overall_sentiment.lower(), "sentiment-neutral")
-        emoji = {"positive":"🙂","neutral":"😐","negative":"🙁"}.get(overall_sentiment.lower(), "😐")
+        sent_class = {
+            "positive": "sentiment-positive",
+            "neutral": "sentiment-neutral",
+            "negative": "sentiment-negative",
+        }.get(overall_sentiment.lower(), "sentiment-neutral")
+        emoji = {"positive": "🙂", "neutral": "😐", "negative": "🙁"}.get(
+            overall_sentiment.lower(), "😐"
+        )
 
-        st.markdown(f"<div class='big-box {sent_class}'><h4>Overall Sentiment {emoji}</h4><p>{overall_sentiment}</p></div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='big-box'><h4>Overall Customer Summary</h4><p>{overall_summary}</p></div>", unsafe_allow_html=True)
+        st.markdown(
+            f"<div class='big-box {sent_class}'><h4>Overall Sentiment {emoji}</h4><p>{overall_sentiment}</p></div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            f"<div class='big-box'><h4>Overall Customer Summary</h4><p>{overall_summary}</p></div>",
+            unsafe_allow_html=True,
+        )
 
-        # Structured post-call sections (if available)
         structured = data.get("structured", {}) or {}
         customer_intent = structured.get("customer_intent", "")
         key_topics = structured.get("key_topics", []) or []
@@ -225,43 +263,64 @@ if os.path.exists(post_summary_file):
         win_risk = structured.get("win_risk", "")
         call_score = structured.get("call_score", "")
 
-        # Consolidated Overall Call Summary box
-        has_any = any([
-            customer_intent, key_topics, objections, resolutions, next_steps, recommended_follow_up, win_risk, call_score != ""
-        ])
+        has_any = any(
+            [
+                customer_intent,
+                key_topics,
+                objections,
+                resolutions,
+                next_steps,
+                recommended_follow_up,
+                win_risk,
+                call_score != "",
+            ]
+        )
         if has_any:
-            topics_html = "".join([f"<li>{t}</li>" for t in key_topics]) if key_topics else ""
-            obj_html = "".join([f"<li>{o}</li>" for o in objections]) if objections else ""
-            res_html = "".join([f"<li>{r}</li>" for r in resolutions]) if resolutions else ""
-            steps_html = "".join([f"<li>{s}</li>" for s in next_steps]) if next_steps else ""
-            meta = []
-           
+            topics_html = "".join([f"<li>{topic}</li>" for topic in key_topics]) if key_topics else ""
+            obj_html = "".join([f"<li>{objection}</li>" for objection in objections]) if objections else ""
+            res_html = "".join([f"<li>{resolution}</li>" for resolution in resolutions]) if resolutions else ""
+            steps_html = "".join([f"<li>{step}</li>" for step in next_steps]) if next_steps else ""
 
             combined_html = "<div class='big-box'>"
             combined_html += "<h4>Overall Call Summary</h4>"
             if customer_intent:
-                combined_html += f"<p style='margin:0 0 8px 0'><strong>Customer Intent:</strong> {customer_intent}</p>"
+                combined_html += (
+                    f"<p style='margin:0 0 8px 0'><strong>Customer Intent:</strong> {customer_intent}</p>"
+                )
             if key_topics:
-                combined_html += f"<div style='margin:8px 0'><strong>Key Topics:</strong><ul style='margin:6px 0 0 20px'>{topics_html}</ul></div>"
+                combined_html += (
+                    f"<div style='margin:8px 0'><strong>Key Topics:</strong><ul style='margin:6px 0 0 20px'>{topics_html}</ul></div>"
+                )
             if objections or resolutions:
                 combined_html += "<div style='display:flex; gap:20px; flex-wrap:wrap; margin:8px 0'>"
                 if objections:
-                    combined_html += f"<div style='flex:1; min-width:200px'><strong>Objections</strong><ul style='margin:6px 0 0 20px'>{obj_html}</ul></div>"
+                    combined_html += (
+                        f"<div style='flex:1; min-width:200px'><strong>Objections</strong><ul style='margin:6px 0 0 20px'>{obj_html}</ul></div>"
+                    )
                 if resolutions:
-                    combined_html += f"<div style='flex:1; min-width:200px'><strong>Resolutions</strong><ul style='margin:6px 0 0 20px'>{res_html}</ul></div>"
+                    combined_html += (
+                        f"<div style='flex:1; min-width:200px'><strong>Resolutions</strong><ul style='margin:6px 0 0 20px'>{res_html}</ul></div>"
+                    )
                 combined_html += "</div>"
             if next_steps:
-                combined_html += f"<div class='suggestion-box' style='padding:10px; margin:8px 0'><strong>Next Steps</strong><ul style='margin:6px 0 0 20px'>{steps_html}</ul></div>"
+                combined_html += (
+                    f"<div class='suggestion-box' style='padding:10px; margin:8px 0'><strong>Next Steps</strong><ul style='margin:6px 0 0 20px'>{steps_html}</ul></div>"
+                )
             if recommended_follow_up:
-                combined_html += f"<div class='suggestion-box' style='padding:10px; margin:8px 0'><strong>Recommended Follow-up:</strong> {recommended_follow_up}</div>"
-            
+                combined_html += (
+                    f"<div class='suggestion-box' style='padding:10px; margin:8px 0'><strong>Recommended Follow-up:</strong> {recommended_follow_up}</div>"
+                )
+            combined_html += "</div>"
 
             st.markdown(combined_html, unsafe_allow_html=True)
 
         with st.expander("Full Transcript"):
-            st.markdown(f"<div class='big-box transcript-box'>{full_transcript}</div>", unsafe_allow_html=True)
+            st.markdown(
+                f"<div class='big-box transcript-box'>{full_transcript}</div>",
+                unsafe_allow_html=True,
+            )
 
-    except Exception as e:
-        st.error(f"Error loading post-call summary: {e}")
+    except Exception as error:
+        st.error(f"Error loading post-call summary: {error}")
 else:
     st.info("No post-call summary available (will appear after ending a call).")

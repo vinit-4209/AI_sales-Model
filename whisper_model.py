@@ -6,10 +6,15 @@ import numpy as np
 import soundfile as sf
 from groq import Groq
 from dotenv import load_dotenv
+
+from runtime_config import get_groq_api_key
 load_dotenv()
 
-# Initialize Groq client (expects GROQ_API_KEY in environment)
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+def _get_client():
+    api_key = get_groq_api_key()
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not configured.")
+    return Groq(api_key=api_key)
 
 def load_whisper_model(model_size="whisper-large-v3-turbo", **kwargs):
     """
@@ -28,6 +33,7 @@ def transcribe_audio(model, audio_data, **kwargs):
         tmp_wav_path = tmp_wav.name
 
     try:
+        client = _get_client()
         with open(tmp_wav_path, "rb") as audio_file:
             transcription = client.audio.transcriptions.create(
                 file=(tmp_wav_path, audio_file.read()),

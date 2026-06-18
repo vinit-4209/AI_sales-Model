@@ -42,8 +42,8 @@ This project records audio in real-time, transcribes speech using a Whisper mode
 
 ## Features
 
-- **Real-time audio recording** using your microphone
-- **Automatic speech transcription** with [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+- **Real-time browser microphone capture** using Streamlit WebRTC
+- **Automatic speech transcription** with [whisper](https://github.com/SYSTRAN/faster-whisper)
 - **Sentiment analysis** via the Groq API (Llama-3.1-8b-instant)
 - **CRM Integration** - Fetch customer data from CSV and generate AI-powered recommendations
 - **Product Recommendations** - AI-generated product suggestions based on customer history
@@ -124,7 +124,7 @@ streamlit run app.py
 1. **Customer Details**: Enter customer name, phone, and email in the sidebar
 2. **Fetch Customer Data**: Click "🔍 Fetch Customer Data" to get CRM information
 3. **View Recommendations**: See AI-generated product recommendations based on customer history
-4. **Start Call**: Use the call control buttons to start/stop recording
+4. **Start Call**: Use the call control buttons to start/stop the browser microphone
 5. **Live Analysis**: View real-time transcription and sentiment analysis
 
 ### Command Line Interface
@@ -135,7 +135,7 @@ Run the main script:
 python main.py
 ```
 
-- Speak into your microphone.
+- Speak into your browser microphone.
 - The script will transcribe your speech, analyze sentiment, and log results to your Google Sheet.
 - The process will automatically stop after 15 seconds of silence (configurable in `main.py`).
 
@@ -167,7 +167,7 @@ You can adjust these parameters in `main.py`:
 ## Requirements
 
 - Python 3.8+
-- sounddevice
+- streamlit-webrtc
 - numpy
 - requests
 - python-dotenv

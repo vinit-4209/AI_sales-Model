@@ -1,8 +1,11 @@
 # sheet.py
 from datetime import datetime
+import os
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import re
+
+from runtime_config import get_service_account_credentials
 
 HEADERS = ["Timestamp", "Customer Name", "Full Transcript", "Overall Sentiment", "Overall Customer Summary"]
 
@@ -14,7 +17,16 @@ def get_sheet(sheet_name="Speech_Analysis", creds_file="credentials.json"):
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive"
     ]
-    creds = ServiceAccountCredentials.from_json_keyfile_name(creds_file, scope)
+    if os.path.exists(creds_file):
+        creds = ServiceAccountCredentials.from_json_keyfile_name(creds_file, scope)
+    else:
+        service_account = get_service_account_credentials()
+        if service_account is None:
+            raise FileNotFoundError(
+                "Google Sheets credentials not found. Provide credentials.json or set gcp_service_account in Streamlit secrets."
+            )
+        service_account = dict(service_account)
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account, scope)
     client = gspread.authorize(creds)
     sheet = client.open(sheet_name).sheet1
     ensure_headers(sheet)

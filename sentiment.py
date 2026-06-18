@@ -4,17 +4,19 @@ import requests
 import json
 from dotenv import load_dotenv
 
+from runtime_config import get_groq_api_key
+
 load_dotenv()
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+
+def _get_groq_api_key():
+    api_key = get_groq_api_key()
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not configured.")
+    return api_key
 
 
 def analyze_customer_utterance(text):
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
-    }
-
     prompt = f"""
     You are an AI sales assistant. A customer just said: "{text}"
     
@@ -43,6 +45,11 @@ def analyze_customer_utterance(text):
     }
 
     try:
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {_get_groq_api_key()}",
+            "Content-Type": "application/json"
+        }
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         result = response.json()
@@ -72,12 +79,6 @@ def analyze_post_call_summary(transcript_text):
     Returns a JSON-friendly dict with enhanced fields while preserving backward compatibility
     with keys: sentiment, summary.
     """
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
-    }
-
     prompt = f"""
     You are an expert sales call summarizer. Analyze the FULL call transcript below (customer and salesperson) and produce a concise, executive-ready summary for a CRM note.
 
@@ -116,6 +117,11 @@ def analyze_post_call_summary(transcript_text):
     }
 
     try:
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {_get_groq_api_key()}",
+            "Content-Type": "application/json"
+        }
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         result = response.json()

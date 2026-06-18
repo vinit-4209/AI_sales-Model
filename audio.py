@@ -1,8 +1,5 @@
 # audio.py
-import sounddevice as sd
 import numpy as np
-import queue
-import threading
 
 
 class SilenceDetector:
@@ -20,28 +17,3 @@ class SilenceDetector:
             self.recent_rms.pop(0)
         dynamic_threshold = max(0.01, np.mean(self.recent_rms) * self.multiplier)
         return rms < dynamic_threshold
-
-
-def audio_callback(audio_queue):
-    def callback(indata, frames, time, status):
-        if status:
-            print(status)
-        audio_queue.put(indata.copy())
-    return callback
-
-
-def start_recorder(audio_queue, sample_rate, channels, frames_per_block, stop_event):
-    def recorder():
-        with sd.InputStream(
-            samplerate=sample_rate,
-            channels=channels,
-            callback=audio_callback(audio_queue),
-            blocksize=frames_per_block
-        ):
-            print("Listening... Speak now (Ctrl+C to stop)")
-            while not stop_event.is_set():
-                sd.sleep(100)
-        print("Recorder stopped.") 
-    thread = threading.Thread(target=recorder, daemon=True)
-    thread.start()
-    return thread

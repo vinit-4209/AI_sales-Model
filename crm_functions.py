@@ -4,11 +4,10 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 
+from runtime_config import get_groq_api_key
+
 # -------------------- Initialization --------------------
 load_dotenv()
-
-# ✅ Global Groq client (only created once)
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # ✅ Global cache for CRM data
 _cached_df = None
@@ -67,7 +66,7 @@ def summarize_client_data(client_data):
     """
     try:
         # Initialize Groq client
-        client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        client = Groq(api_key=get_groq_api_key())
 
         # Prepare the prompt
         prompt = f"""
