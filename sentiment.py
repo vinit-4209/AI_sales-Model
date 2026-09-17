@@ -1,10 +1,10 @@
-# sentiment.py
-import json
+#sentiment.py
 import os
 import requests
+import json
 from dotenv import load_dotenv
 
-from runtime_config import get_candidate_groq_models, get_groq_api_key
+from runtime_config import get_groq_api_key
 
 load_dotenv()
 
@@ -14,42 +14,6 @@ def _get_groq_api_key():
     if not api_key:
         raise ValueError("GROQ_API_KEY is not configured.")
     return api_key
-
-
-def _call_groq_chat(messages, temperature=0.7, max_tokens=1000):
-    """
-    Helper function to call Groq with automatic model fallback if a model is deprecated/missing.
-    """
-    models = get_candidate_groq_models()
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {_get_groq_api_key()}",
-        "Content-Type": "application/json"
-    }
-
-    last_error = None
-    for model in models:
-        payload = {
-            "model": model,
-            "messages": messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens
-        }
-        try:
-            response = requests.post(url, headers=headers, json=payload, timeout=20)
-            if response.status_code == 404 or "model_not_found" in response.text:
-                continue
-            response.raise_for_status()
-            result = response.json()
-            return result["choices"][0]["message"]["content"].strip()
-        except Exception as e:
-            last_error = e
-            if "model_not_found" in str(e) or "404" in str(e) or "does not exist" in str(e):
-                continue
-            else:
-                break
-
-    raise RuntimeError(f"Groq API call failed across all candidate models. Last error: {last_error}")
 
 
 def analyze_customer_utterance(text):
@@ -71,26 +35,26 @@ def analyze_customer_utterance(text):
     }}
     """
 
-    messages = [
-        {"role": "system", "content": "You are an AI sales assistant providing actionable advice."},
-        {"role": "user", "content": prompt}
-    ]
+    payload = {
+        "model": "openai/gpt-oss-20b",
+        "messages": [
+            {"role": "system", "content": "You are an AI sales assistant providing actionable advice."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.7
+    }
 
     try:
-        raw_output = _call_groq_chat(messages, temperature=0.7, max_tokens=300)
-        # Parse JSON
-        if "```" in raw_output:
-            cleaned = raw_output.replace("```json", "").replace("```", "").strip()
-        else:
-            cleaned = raw_output.strip()
-
-        start = cleaned.find('{')
-        end = cleaned.rfind('}')
-        if start != -1 and end != -1:
-            parsed = json.loads(cleaned[start:end+1])
-        else:
-            parsed = json.loads(cleaned)
-
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {_get_groq_api_key()}",
+            "Content-Type": "application/json"
+        }
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        result = response.json()
+        raw_output = result["choices"][0]["message"]["content"].strip()
+        parsed = json.loads(raw_output)
         return {
             "sentiment": parsed.get("sentiment", "neutral"),
             "intent": parsed.get("intent", "unknown"),
@@ -143,25 +107,39 @@ def analyze_post_call_summary(transcript_text):
     }}
     """
 
-    messages = [
-        {"role": "system", "content": "You summarize sales calls into structured, actionable CRM notes."},
-        {"role": "user", "content": prompt}
-    ]
+    payload = {
+        "model": "llama-3.1-8b-instant",
+        "messages": [
+            {"role": "system", "content": "You summarize sales calls into structured, actionable CRM notes."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.4
+    }
 
     try:
-        raw_output = _call_groq_chat(messages, temperature=0.4, max_tokens=1000)
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {_get_groq_api_key()}",
+            "Content-Type": "application/json"
+        }
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        result = response.json()
+        raw_output = result["choices"][0]["message"]["content"].strip()
 
-        if "```" in raw_output:
-            cleaned = raw_output.replace("```json", "").replace("```", "").strip()
-        else:
-            cleaned = raw_output.strip()
-
-        start = cleaned.find('{')
-        end = cleaned.rfind('}')
-        if start != -1 and end != -1:
-            parsed = json.loads(cleaned[start:end+1])
-        else:
-            parsed = json.loads(cleaned)
+        try:
+            parsed = json.loads(raw_output)
+        except json.JSONDecodeError:
+            if "```" in raw_output:
+                cleaned = raw_output.strip('`')
+                start = cleaned.find('{')
+                end = cleaned.rfind('}')
+                if start != -1 and end != -1 and end > start:
+                    parsed = json.loads(cleaned[start:end+1])
+                else:
+                    raise
+            else:
+                raise
 
         # Backward compatible defaults
         return {
