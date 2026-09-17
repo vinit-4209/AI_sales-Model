@@ -43,3 +43,25 @@ def get_service_account_credentials(default=None):
         return json.loads(env_value)
 
     return default
+
+
+def get_groq_model(default="groq/compound-mini"):
+    secrets = _get_streamlit_secrets()
+    for key in ("GROQ_MODEL", "groq_model"):
+        value = secrets.get(key)
+        if value:
+            return value
+
+    return os.getenv("GROQ_MODEL", default)
+
+
+def get_candidate_groq_models():
+    primary = get_groq_model()
+    defaults = [primary, "groq/compound-mini", "openai/gpt-oss-20b", "qwen/qwen3.8-27b", "llama-3.1-8b-instant"]
+    seen = set()
+    result = []
+    for m in defaults:
+        if m and m not in seen:
+            seen.add(m)
+            result.append(m)
+    return result

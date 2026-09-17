@@ -48,6 +48,8 @@ class SalesCallPipeline:
         target_silence_sec=1.2,
         buffer_blocks=20,
         multiplier=1.5,
+        on_utterance=None,
+        on_finalized=None,
     ):
         self.model_name = model_name
         self.sample_rate = sample_rate
@@ -64,6 +66,8 @@ class SalesCallPipeline:
         self.call_transcript = []
         self.stop_event = threading.Event()
         self.finalized_event = threading.Event()
+        self.on_utterance = on_utterance
+        self.on_finalized = on_finalized
         self._model = None
         self._thread = None
         self._lock = threading.Lock()
@@ -132,6 +136,19 @@ class SalesCallPipeline:
         write_live("=" * 50)
         update_status(sentiment, summary, suggestion)
 
+        if self.on_utterance:
+            try:
+                self.on_utterance({
+                    "timestamp": timestamp,
+                    "transcript": full_transcript,
+                    "sentiment": sentiment,
+                    "summary": summary,
+                    "suggestion": suggestion,
+                    "intent": analysis.get("intent", "unknown"),
+                })
+            except Exception as e:
+                print(f"Error in on_utterance callback: {e}")
+
         print("\n" + "=" * 70)
         print(f"Timestamp        : {timestamp}")
         print("TRANSCRIPTION & AI RECOMMENDATION")
@@ -168,6 +185,12 @@ class SalesCallPipeline:
             json.dump(post_summary_data, file_handle, indent=2)
 
         print(f"Post-call summary saved to {POST_SUMMARY_FILE}")
+
+        if self.on_finalized:
+            try:
+                self.on_finalized(post_summary_data)
+            except Exception as e:
+                print(f"Error in on_finalized callback: {e}")
 
         try:
             sheet = get_sheet()

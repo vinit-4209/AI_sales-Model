@@ -1,0 +1,12 @@
+.venv
+__pycache__
+*.pyc
+.git
+.gitignore
+node_modules
+frontend/node_modules
+*.log
+transcript_live.txt
+status_live.json
+post_summary.json
+stop_signal.txt

@@ -1,0 +1,43 @@
+# ==========================================
+# Stage 1: Build React Frontend
+# ==========================================
+FROM node:20-slim AS frontend-builder
+WORKDIR /app/frontend
+
+COPY frontend/package*.json ./
+RUN npm install
+
+COPY frontend/ ./
+RUN npm run build
+
+# ==========================================
+# Stage 2: Python Backend & Production Runtime
+# ==========================================
+FROM python:3.12-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PORT=8000
+
+WORKDIR /app
+
+# Install system dependencies needed for audio processing
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libsndfile1 \
+    ffmpeg \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy backend source code and CSV data
+COPY . .
+
+# Copy built React frontend from Stage 1 into frontend/dist
+COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
+
+EXPOSE 8000
+
+CMD ["sh", "-c", "uvicorn server:app --host 0.0.0.0 --port ${PORT}"]

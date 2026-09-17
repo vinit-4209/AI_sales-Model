@@ -1,203 +1,127 @@
-## Whisper – Optimized Speech-to-Text System
+# AI Sales Call Assistant: Real-Time Speech Transcription, Sentiment Analysis & CRM
 
-Whisper is an **optimized, faster, and memory-efficient implementation** of OpenAI’s Whisper Automatic Speech Recognition (ASR) model.  
-It delivers **real-time transcription** performance while retaining Whisper’s **multilingual accuracy** and **robust handling of accents**. 
+An AI-powered sales call assistant featuring real-time speech transcription via **Whisper**, conversational sentiment & action suggestions via **Groq (Llama-3.1)**, **CRM intelligence**, and post-call executive summaries.
 
----
-
-## 🚀 What is Whisper?
-
-- Converts Whisper models into **CTranslate2** or **Faster-Whisper** format for optimized CPU/GPU inference.
-- Provides **streaming transcription** for **low-latency applications**.
-- Runs efficiently on **CPU, GPU, and Apple Silicon (M1/M2)** hardware.
-- Fully **open-source** and **customizable**.
+Now upgraded with a modern **React + Vite UI** backed by a high-performance **FastAPI server** with real-time **WebSocket audio streaming**, while preserving the original **Streamlit** interface.
 
 ---
 
-## 💡 Why Use Whisper?
+## 🚀 Key Features
 
-OpenAI’s original Whisper model is **accurate but computationally heavy**. Fast Whisper solves this by:
-
-- **Reducing latency** → ideal for live captions and call transcription.
-- **Lowering resource usage** → runs even on laptops, mobile devices, or Raspberry Pi.
-- **Cost efficiency** → less hardware required compared to standard Whisper.
-
-**Perfect for:**
-
-- Real-time meeting transcription
-- Sales call analytics
-- Live captions for webinars or broadcasts
-- Edge deployments where power consumption is critical
+- **Modern React Dashboard**: Sleek, responsive, dark-themed UI built with Vite, React, and Lucide icons.
+- **Native Browser Microphone Streaming**: Real-time 16 kHz mono PCM audio capture using HTML5 Web Audio API over WebSocket (no STUN/TURN/WebRTC server configuration needed).
+- **Live Automatic Speech Transcription**: Fast local Whisper ASR transcription (`whisper-large-v3-turbo`).
+- **Real-Time Sentiment & Action Suggestions**: Dynamic sentiment tracking (Positive, Neutral, Negative) and real-time guidance on what the sales rep should say next.
+- **CRM Integration**: Instant customer profile lookup from `CRM_data.csv` by phone number, plus AI-generated product cross-sell recommendations.
+- **Executive Post-Call Analytics**: Automatically generated post-call scorecard, customer intent, key topics, objections, resolutions, next steps, and full expandable transcript.
+- **Google Sheets Integration**: Automatic logging of transcript, sentiment, and summary to Google Sheets.
 
 ---
 
-
-
-
-# AI Sales Model: Real-Time Speech Transcription, Sentiment Analysis, and Google Sheets Logging
-
-This project records audio in real-time, transcribes speech using a Whisper model, analyzes sentiment using the Groq API, and logs the results to a Google Sheet. The workflow is modular, with separate files for audio handling, transcription, sentiment analysis, and Google Sheets integration.
-
----
-
-## Features
-
-- **Real-time browser microphone capture** using Streamlit WebRTC
-- **Automatic speech transcription** with [whisper](https://github.com/SYSTRAN/faster-whisper)
-- **Sentiment analysis** via the Groq API (Llama-3.1-8b-instant)
-- **CRM Integration** - Fetch customer data from CSV and generate AI-powered recommendations
-- **Product Recommendations** - AI-generated product suggestions based on customer history
-- **Automatic logging** of transcript, sentiment, and summary to Google Sheets
-- **Auto-stop** after configurable silence duration
-
----
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 AI_sales Model/
 │
-├── app.py                # Streamlit web interface
-├── audio.py              # Audio recording and silence detection
+├── frontend/             # Modern React + Vite UI
+│   ├── src/
+│   │   ├── components/   # Header, SidebarCRM, CallControls, LiveInsights, PostCallSummary
+│   │   ├── services/     # Web Audio API streamer & REST/WebSocket client
+│   │   ├── App.jsx       # Main Dashboard application
+│   │   └── index.css     # Modern styling & theme
+│   └── package.json
+├── server.py             # FastAPI backend with WebSocket audio streaming & REST APIs
+├── run_server.py         # Entry point for backend server
+├── start_app.bat         # 1-Click Windows launcher for both Backend and React UI
+├── start_backend.bat     # Launcher for backend server only
+├── start_frontend.bat    # Launcher for React frontend only
+├── app.py                # Legacy Streamlit web interface
+├── audio.py              # Audio recording & silence detection utilities
 ├── whisper_model.py      # Whisper model loading and transcription
-├── sentiment.py          # Sentiment analysis via Groq API
-├── sheet.py              # Google Sheets integration
+├── sentiment.py          # Sentiment analysis & summary via Groq API
+├── sheet.py              # Google Sheets logging integration
 ├── crm_functions.py      # CRM data fetching and AI recommendations
-├── main.py               # Main integration script
-├── CRM_data.csv          # Customer data for CRM integration
+├── main.py               # Main integration script & SalesCallPipeline
+├── CRM_data.csv          # Sample customer database for CRM
 ├── requirements.txt      # Python dependencies
-├── credentials.json      # Google Service Account credentials (not included)
-├── .env                  # Environment variables (GROQ_API_KEY)
-└── README.md             # Project documentation
+└── .env                  # Environment variables (GROQ_API_KEY)
 ```
 
 ---
 
-## Setup Instructions
+## 🛠️ Setup Instructions
 
-### 1. Clone the Repository
+### 1. Python Environment
 
-```sh
-git clone https://github.com/vinit-4209/AI_sales-Model.git
-cd AI_sales Model
-```
-
-### 2. Create and Activate a Virtual Environment
+Ensure you have Python 3.10+ installed:
 
 ```sh
 python -m venv .venv
 .venv\Scripts\activate
-```
-
-### 3. Install Dependencies
-
-```sh
 pip install -r requirements.txt
 ```
 
-### 4. Set Up Environment Variables
+### 2. Frontend Dependencies
 
-Create a `.env` file in the project root with your Groq API key:
+Ensure you have Node.js (v18+) installed:
 
+```sh
+cd frontend
+npm install
+cd ..
 ```
+
+### 3. Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
 GROQ_API_KEY=your_groq_api_key_here
 ```
 
-### 5. Set Up Google Sheets Credentials
+---
 
-- Create a Google Cloud project and enable the Google Sheets API.
-- Download your `credentials.json` and place it in the project root.
-- Share your target Google Sheet with the service account email.
+## 💻 Running the Project
+
+### Option A: Modern React UI (Recommended)
+
+#### Quick 1-Click Launch (Windows):
+Double-click `start_app.bat` to automatically launch both the backend and frontend.
+
+#### Or Manual Terminal Launch:
+
+**Terminal 1 (Backend):**
+```sh
+.venv\Scripts\activate
+python run_server.py
+```
+*Runs FastAPI on `http://127.0.0.1:8000` (API documentation at `http://127.0.0.1:8000/docs`).*
+
+**Terminal 2 (React Frontend):**
+```sh
+cd frontend
+npm run dev
+```
+*Runs React development server on `http://localhost:5173`.*
 
 ---
 
-## Usage
+### Option B: Original Streamlit UI
 
-### Web Interface (Recommended)
-
-Run the Streamlit app:
+To run the original Streamlit application:
 
 ```sh
+.venv\Scripts\activate
 streamlit run app.py
 ```
 
-1. **Customer Details**: Enter customer name, phone, and email in the sidebar
-2. **Fetch Customer Data**: Click "🔍 Fetch Customer Data" to get CRM information
-3. **View Recommendations**: See AI-generated product recommendations based on customer history
-4. **Start Call**: Use the call control buttons to start/stop the browser microphone
-5. **Live Analysis**: View real-time transcription and sentiment analysis
-
-### Command Line Interface
-
-Run the main script:
-
-```sh
-python main.py
-```
-
-- Speak into your browser microphone.
-- The script will transcribe your speech, analyze sentiment, and log results to your Google Sheet.
-- The process will automatically stop after 15 seconds of silence (configurable in `main.py`).
-
-## CRM Integration
-
-The system now includes CRM functionality:
-
-1. **Customer Data Fetching**: Enter a phone number to fetch customer data from `CRM_data.csv`
-2. **AI-Powered Analysis**: Uses Groq's Llama-3.1-70b model to analyze customer history
-3. **Product Recommendations**: Generates personalized product suggestions based on:
-   - Previous purchase history
-   - Product category preferences
-   - Price range analysis
-   - Upselling/cross-selling opportunities
-4. **Sales Insights**: Provides key talking points and customer profile summary
-
 ---
 
-## Configuration
+## 📊 CRM Testing Numbers
 
-You can adjust these parameters in `main.py`:
+For quick testing with `CRM_data.csv`, you can click the quick demo contact buttons in the React UI or enter:
 
-- `SILENCE_THRESHOLD`: Sensitivity for silence detection
-- `SILENCE_SECONDS`: Duration of silence before auto-stop
-- `sample_rate`, `block_duration`, `chunk_duration`: Audio processing settings
-
----
-
-## Requirements
-
-- Python 3.8+
-- streamlit-webrtc
-- numpy
-- requests
-- python-dotenv
-- gspread
-- oauth2client
-
-All dependencies are listed in `requirements.txt`.
-
----
-
-## License
-
-This project is for educational and demonstration purposes.
-
----
-
-## DEMO Purpose
-## Live Transcription & Suggestions
-![Demo4](./images/img4.png)
-
-## Product Recommendation
-![Demo1](./images/img1.png)
-
-## Overall Post-Call Summary
-![Demo3](./images/img3.png)
-![Demo2](./images/img2.png)
-
-
-
-## Acknowledgements
-
-- [Groq API](https://console.groq.com/)
-- [Google Sheets API](https://developers.google.com/sheets/api)
+- `+91-9876543210` (Rajesh Verma – Ergonomic Chair X)
+- `+91-9876543211` (Priya Sharma – Bose Headset 700)
+- `+91-9876543212` (Amit Joshi – Laptop Pro 15)
+- `+91-9876543213` (Neha Gupta – Wireless Keyboard Z)
