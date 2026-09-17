@@ -1,10 +1,10 @@
 # crm_functions.py
-import pandas as pd
 import os
-from groq import Groq
+import pandas as pd
 from dotenv import load_dotenv
+from groq import Groq
 
-from runtime_config import get_groq_api_key
+from runtime_config import get_candidate_groq_models, get_groq_api_key
 
 # -------------------- Initialization --------------------
 load_dotenv()
@@ -34,7 +34,7 @@ def get_client_data_from_csv(phone_number, csv_file="CRM_data.csv"):
     try:
         df = _load_crm_data(csv_file)
         clean_phone = str(phone_number).replace(" ", "").replace("-", "").replace("+", "")
-        
+
         for _, row in df.iterrows():
             csv_phone = str(row['Phone']).replace(" ", "").replace("-", "").replace("+", "")
             if clean_phone in csv_phone or csv_phone in clean_phone:
@@ -90,27 +90,39 @@ def summarize_client_data(client_data):
         Keep the response concise, actionable, and human-readable.
         """
 
-        # Generate response using Groq
-        response = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are an expert sales assistant that analyzes customer data "
-                        "and provides actionable insights and product recommendations "
-                        "for sales representatives."
-                    ),
-                },
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.7,
-            max_tokens=1000
-        )
+        # Try candidate models with automatic fallback
+        models = get_candidate_groq_models()
+        last_error = None
 
-        # Return the AI-generated text
-        raw_output = response.choices[0].message.content or ""
-        return raw_output.strip()
+        for model in models:
+            try:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are an expert sales assistant that analyzes customer data "
+                                "and provides actionable insights and product recommendations "
+                                "for sales representatives."
+                            ),
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
+                    temperature=0.7,
+                    max_tokens=1000
+                )
+                raw_output = response.choices[0].message.content or ""
+                return raw_output.strip()
+            except Exception as e:
+                last_error = e
+                # Fallback if model doesn't exist on this account
+                if "model_not_found" in str(e) or "404" in str(e) or "does not exist" in str(e):
+                    continue
+                else:
+                    break
+
+        return f"Error generating AI summary: {str(last_error)}. Please check your Groq API key."
 
     except Exception as e:
         return f"Error generating AI summary: {str(e)}. Please check your Groq API key."
