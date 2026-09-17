@@ -36,7 +36,7 @@ export default function Header({ isRunning, isConnected, callDuration }) {
         </div>
         <div>
           <h1 style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            AI Sales Call Assistant
+            AI Sales Copilot
             <span style={{
               fontSize: '11px',
               padding: '2px 8px',
